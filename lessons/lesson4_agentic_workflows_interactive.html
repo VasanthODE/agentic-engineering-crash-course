@@ -34,8 +34,12 @@
 
   .spine{position:sticky;top:0;align-self:start;height:100vh;padding-top:3rem;overflow:hidden}
   .spine-cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tt);margin:0 0 16px 4px}
-  .spine-inner{position:relative;padding-left:26px}
-  .spine-rail{position:absolute;left:7px;top:8px;bottom:46px;width:2px;background:linear-gradient(var(--al),var(--tl),var(--orch,#854F0B),var(--cl));border-radius:2px;opacity:.4}
+  .spine-inner{position:relative;padding-left:26px;padding-bottom:60px;max-height:calc(100vh - 200px);overflow-y:auto;padding-right:8px}
+  .spine-inner::-webkit-scrollbar{width:5px}
+  .spine-inner::-webkit-scrollbar-track{background:transparent}
+  .spine-inner::-webkit-scrollbar-thumb{background:var(--bs);border-radius:3px}
+  .spine-inner::-webkit-scrollbar-thumb:hover{background:var(--bt)}
+  .spine-rail{position:absolute;left:7px;top:8px;bottom:auto;max-height:calc(100% - 16px);width:2px;background:linear-gradient(var(--al),var(--tl),var(--orch,#854F0B),var(--cl));border-radius:2px;opacity:.4}
   .spine-loop{position:absolute;left:0;bottom:14px;font-size:13px;color:var(--a);font-family:var(--mono)}
   .spine a{display:block;position:relative;padding:8px 0;text-decoration:none;line-height:1.25;transition:all .2s}
   .spine a .nm{font-size:13px;color:var(--ts)}
