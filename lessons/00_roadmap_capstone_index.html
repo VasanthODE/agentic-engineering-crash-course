@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The AI Agent Engineering Roadmap · Capstone</title>
+<style>
+  :root{
+    --bg:#FBFAF7; --bg2:#F2F0E9; --bg3:#E9E6DC;
+    --bt:#E7E4DA; --bs:#D5D2C8;
+    --tp:#1b1a18; --ts:#55534d; --tt:#8d8a82;
+    --p:#534AB7; --pl:#7F77DD; --pbg:#EEEDFE; --pink:#3C3489;
+    --t:#0F6E56; --tl:#1D9E75; --tbg:#E1F5EE; --tdk:#085041;
+    --a:#854F0B; --al:#EF9F27; --abg:#FAEEDA; --adk:#633806;
+    --c:#993C1D; --cl:#D85A30; --cbg:#FAECE7; --cdk:#712B13;
+    --b:#185FA5; --bl:#378ADD; --bbg:#E6F1FB; --bdk:#0C447C;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--tp);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--pbg);color:var(--pink)}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+
+  .hero{padding:5.5rem 0 3rem;border-bottom:1px solid var(--bt);text-align:center}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--pl);margin-bottom:1.4rem}
+  .hero h1{font-size:clamp(2.6rem,6vw,4.4rem);line-height:1.0;letter-spacing:-.035em;font-weight:700;margin:0 auto 1.3rem;max-width:16ch}
+  .hero h1 em{font-style:normal;background:linear-gradient(105deg,var(--p),var(--b),var(--t));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{font-size:1.15rem;color:var(--ts);max-width:60ch;margin:0 auto}
+  .hero .meta{margin-top:2.2rem;display:flex;gap:30px;flex-wrap:wrap;justify-content:center;font-family:var(--mono);font-size:12.5px;color:var(--tt)}
+  .hero .meta b{color:var(--tp);font-weight:600}
+
+  .arc{padding:3.5rem 0 1rem;text-align:center}
+  .arc h2{font-size:1.05rem;color:var(--ts);font-weight:500;max-width:64ch;margin:0 auto 2.4rem;line-height:1.7}
+  .arc h2 b{color:var(--tp);font-weight:650}
+  .arc-flow{display:flex;align-items:stretch;justify-content:center;gap:0;flex-wrap:wrap;max-width:880px;margin:0 auto}
+  .arc-node{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 4px}
+  .arc-dot{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:19px;color:white;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .arc-vb{font-size:11px;color:var(--ts);font-weight:500;max-width:74px;line-height:1.25}
+  .arc-conn{flex:0 0 18px;align-self:flex-start;margin-top:26px;color:var(--bs);font-size:13px;text-align:center}
+  @media(max-width:720px){.arc-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 0}.arc-conn{display:none}}
+
+  .lessons{padding:3rem 0 2rem}
+  .lessons-h{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tt);margin-bottom:1.4rem;text-align:center}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  .lcard{display:block;text-decoration:none;border:1px solid var(--bt);border-radius:16px;padding:20px 22px;background:var(--bg);transition:all .2s;position:relative;overflow:hidden}
+  .lcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+  .lcard:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.07);border-color:var(--accent)}
+  .lcard-top{display:flex;align-items:center;gap:12px;margin-bottom:11px}
+  .lcard-num{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-bg);padding:3px 9px;border-radius:20px}
+  .lcard-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--accent-bg);color:var(--accent);margin-left:auto}
+  .lcard h3{font-size:1.18rem;letter-spacing:-.015em;margin:0 0 5px;color:var(--tp);font-weight:640}
+  .lcard .spineword{font-family:var(--mono);font-size:10.5px;color:var(--accent);margin-bottom:9px}
+  .lcard p{font-size:13px;color:var(--ts);margin:0 0 11px;line-height:1.55}
+  .lcard .tags{display:flex;flex-wrap:wrap;gap:5px}
+  .lcard .tag{font-size:10.5px;padding:2px 8px;border-radius:11px;background:var(--bg2);color:var(--ts)}
+  .lcard .open{margin-top:12px;font-size:12px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:5px}
+
+  .threads{padding:3rem 0;border-top:1px solid var(--bt)}
+  .threads-h{text-align:center;margin-bottom:.6rem}
+  .threads-h h2{font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.02em;margin:0 0 .6rem;font-weight:660}
+  .threads-h p{font-size:1rem;color:var(--ts);max-width:60ch;margin:0 auto 2.2rem}
+  .thread{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:12px;background:var(--bg2);margin-bottom:10px}
+  .thread-ic{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--bg);color:var(--p)}
+  .thread-body{font-size:13.5px;color:var(--ts);line-height:1.6}
+  .thread-body b{color:var(--tp);font-weight:620}
+  .thread-body .ln{font-family:var(--mono);font-size:11px;color:var(--p);background:var(--pbg);padding:1px 6px;border-radius:5px;white-space:nowrap}
+
+  .prod{padding:3rem 0;border-top:1px solid var(--bt)}
+  .prod-h{text-align:center;margin-bottom:2rem}
+  .prod-h h2{font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.02em;margin:0 0 .6rem;font-weight:660}
+  .prod-h p{font-size:1rem;color:var(--ts);max-width:62ch;margin:0 auto}
+  .prod-h code{font-family:var(--mono);font-size:.88em;background:var(--bg2);padding:2px 7px;border-radius:5px}
+  .prod-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+  @media(max-width:720px){.prod-grid{grid-template-columns:1fr}}
+  .prow{display:flex;gap:11px;align-items:baseline;padding:11px 14px;border:1px solid var(--bt);border-radius:10px;background:var(--bg)}
+  .prow .file{font-family:var(--mono);font-size:11.5px;color:var(--p);font-weight:600;flex-shrink:0;min-width:118px}
+  .prow .desc{font-size:12.5px;color:var(--ts);line-height:1.5}
+  .prow .desc b{color:var(--tp)}
+
+  .closing{padding:3.5rem 0 2rem;border-top:1px solid var(--bt);text-align:center}
+  .closing h2{font-size:clamp(1.6rem,3.2vw,2.1rem);letter-spacing:-.02em;font-weight:680;margin:0 auto 1.2rem;max-width:20ch}
+  .closing p{font-size:1.05rem;color:var(--ts);max-width:60ch;margin:0 auto 1rem;line-height:1.7}
+  .closing p b{color:var(--tp);font-weight:620}
+  .footer{padding:2.5rem 0 4rem;text-align:center;color:var(--tt);font-size:12.5px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Interactive Study Companion · Capstone Index</div>
+    <h1>The AI Agent <em>Engineering</em> Roadmap</h1>
+    <p>Eight steps from "what is a transformer?" to "how do I know my production agent works?" Each links to a self-contained interactive lesson. This page is the map — the single arc that connects them.</p>
+    <div class="meta">
+      <span><b>8</b> lessons</span>
+      <span><b>40</b> interactive demos</span>
+      <span><b>1</b> production agent</span>
+      <span>build → ship → know</span>
+    </div>
+  </header>
+
+  <section class="arc">
+    <h2>The roadmap isn't eight topics — it's <b>one story</b>. You build a mind that reasons, give it memory, let it act in a loop, connect it to the world, then wrap it in the infrastructure and safety that make it <b>shippable</b> — and finally learn how to <b>know it works</b>.</h2>
+    <div class="arc-flow" id="arc-flow"></div>
+  </section>
+
+  <section class="lessons">
+    <div class="lessons-h">▼ the eight lessons · click any to open</div>
+    <div class="grid" id="lesson-grid"></div>
+  </section>
+
+  <section class="threads">
+    <div class="threads-h">
+      <h2>The threads that run through</h2>
+      <p>What makes this a course and not a list: ideas introduced early become the foundation for everything after. A few of the strongest threads:</p>
+    </div>
+    <div id="threads"></div>
+  </section>
+
+  <section class="prod">
+    <div class="prod-h">
+      <h2>One production agent, all eight lessons</h2>
+      <p>Every concept lives in a real, containerized customer-support agent — the <code>AcmeCorp Support Assistant</code>. The roadmap isn't theory; it's a map of this codebase.</p>
+    </div>
+    <div class="prod-grid" id="prod-grid"></div>
+  </section>
+
+  <section class="closing">
+    <h2>Build it. Ship it. Know it works.</h2>
+    <p>That's the whole arc. <b>Lessons 1–4</b> build the agent's mind — reasoning, memory, and the loop that lets it act. <b>Lesson 5</b> connects it to the world. <b>Lessons 6–7</b> are the infrastructure and safety that turn a demo into something you can put in front of real users. <b>Lesson 8</b> is how you know — and keep knowing — that it works.</p>
+    <p>You didn't learn eight tools. You learned <b>how the pieces compose into a system</b>, why each exists, and what breaks without it. That's the difference between using agents and engineering them.</p>
+  </section>
+
+  <div class="footer">The AI Agent Engineering Roadmap · interactive study companion · all eight steps complete 🎉</div>
+</div>
+
+<script>
+const LESSONS=[
+  {n:1,file:"lesson1_transformers_interactive.html",title:"LLM Fundamentals",spine:"the residual stream",ic:"ti-brain",accent:"#534AB7",bg:"#EEEDFE",vb:"reasons",
+   desc:"How a transformer turns tokens into predictions — attention, the residual stream, and why next-token prediction scales into reasoning.",tags:["attention","tokens","embeddings"]},
+  {n:2,file:"lesson2_context_engineering_interactive.html",title:"Context Engineering",spine:"the context window",ic:"ti-layout-board",accent:"#185FA5",bg:"#E6F1FB",vb:"is steered",
+   desc:"The context window is the agent's whole world. Prompting, the data-vs-instructions boundary, and managing a finite attention budget.",tags:["prompting","context window","injection"]},
+  {n:3,file:"lesson3_memory_architecture_interactive.html",title:"Memory Architecture",spine:"the timescale axis",ic:"ti-database",accent:"#0F6E56",bg:"#E1F5EE",vb:"remembers",
+   desc:"Four kinds of memory by timescale — session, RAG, episodic, and prompt caching — so the agent persists beyond a single window.",tags:["RAG","episodic","caching"]},
+  {n:4,file:"lesson4_agentic_workflows_interactive.html",title:"Agentic Workflows",spine:"the loop",ic:"ti-refresh",accent:"#854F0B",bg:"#FAEEDA",vb:"acts",
+   desc:"The ReAct loop that turns a model into an agent — reason, act, observe — plus tools, multi-agent patterns, and why coding is the killer app.",tags:["ReAct loop","tools","multi-agent"]},
+  {n:5,file:"lesson5_mcp_tools_interactive.html",title:"MCP &amp; Tools",spine:"the protocol cable",ic:"ti-plug",accent:"#993C1D",bg:"#FAECE7",vb:"connects",
+   desc:"The USB-C of AI — how MCP turns N×M custom integrations into N+M, its three primitives, the lifecycle, and the security risks.",tags:["MCP","primitives","tool poisoning"]},
+  {n:6,file:"lesson6_ai_gateways_interactive.html",title:"AI Gateways",spine:"the chokepoint",ic:"ti-router",accent:"#185FA5",bg:"#E6F1FB",vb:"is managed",
+   desc:"One control point every request flows through — model routing, fallbacks, cost control, and rate limiting. Power from position.",tags:["routing","fallbacks","cost"]},
+  {n:7,file:"lesson7_guardrails_safety_interactive.html",title:"Guardrails &amp; Safety",spine:"the perimeter",ic:"ti-shield-check",accent:"#854F0B",bg:"#FAEEDA",vb:"is safe",
+   desc:"Checkpoints on every boundary — input, output, action — plus PII handling and human-in-the-loop. Defense in depth, fail closed.",tags:["guardrails","PII","human-in-loop"]},
+  {n:8,file:"lesson8_observability_evaluation_interactive.html",title:"Observability &amp; Evaluation",spine:"the feedback loop",ic:"ti-chart-dots",accent:"#0F6E56",bg:"#E1F5EE",vb:"is known",
+   desc:"The two halves of knowing it works — tracing, logs &amp; metrics (the microscope) and eval suites with a deploy gate (the dashboard).",tags:["tracing","eval suite","deploy gate"]},
+];
+
+// arc flow
+const ICONS={1:"🧠",2:"▦",3:"🗄",4:"↻",5:"🔌",6:"⤳",7:"🛡",8:"📊"};
+document.getElementById("arc-flow").innerHTML=LESSONS.map((l,i)=>{
+  const node=`<a class="arc-node" href="${l.file}" style="text-decoration:none"><div class="arc-dot" style="background:${l.accent}">${ICONS[l.n]}</div><div class="arc-vb" style="color:${l.accent};font-weight:600">${l.n}. ${l.vb}</div></a>`;
+  const conn=i<LESSONS.length-1?`<div class="arc-conn">→</div>`:"";
+  return node+conn;
+}).join("");
+
+// lesson cards
+document.getElementById("lesson-grid").innerHTML=LESSONS.map(l=>`
+  <a class="lcard" href="${l.file}" style="--accent:${l.accent};--accent-bg:${l.bg}">
+    <div class="lcard-top">
+      <span class="lcard-num">STEP ${l.n}</span>
+      <span class="lcard-ic"><i class="ti ${l.ic}" aria-hidden="true"></i></span>
+    </div>
+    <h3>${l.title}</h3>
+    <div class="spineword">spine: ${l.spine}</div>
+    <p>${l.desc}</p>
+    <div class="tags">${l.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+    <div class="open">Open interactive lesson →</div>
+  </a>`).join("");
+
+// threads
+const THREADS=[
+  {ic:"ti-shield-bolt",title:"The data-vs-instructions boundary",body:`Introduced in <span class="ln">L2</span> as the core of prompting, it becomes the injection threat in <span class="ln">L5</span>, then hardens into the input guardrail in <span class="ln">L7</span>. One idea, three escalating roles.`},
+  {ic:"ti-circle-check",title:"Verifiable feedback",body:`<span class="ln">L4</span> reveals why coding is the killer app: tests give an objective pass/fail signal. <span class="ln">L8</span> closes the loop — evaluation is how you <b>manufacture</b> that signal for any domain, by building golden cases as ground truth.`},
+  {ic:"ti-arrow-back-up",title:"Reversibility",body:`<span class="ln">L4</span> notes reversible actions are safe to automate. <span class="ln">L7</span> turns it into the action gate: irreversible × high-impact tool calls require human approval. A design heuristic becomes a safety mechanism.`},
+  {ic:"ti-coin",title:"Don't pay (or compute) twice",body:`<span class="ln">L3</span>'s prompt caching discounts a reused prefix; <span class="ln">L6</span>'s response caching skips an identical call entirely. The same frugality principle, applied at two different layers.`},
+  {ic:"ti-stack-2",title:"The message array grows",body:`<span class="ln">L3</span>'s session memory and <span class="ln">L4</span>'s loop both resend an accumulating context — and in <span class="ln">L8</span> you literally watch the input tokens climb call-over-call in the trace. The same mechanic, finally made visible.`},
+  {ic:"ti-building-bridge",title:"Power from position",body:`<span class="ln">L6</span>'s gateway and <span class="ln">L7</span>'s guardrails are both middleware whose power comes from sitting on the request path — not from intelligence. The chokepoint and the perimeter are the same architectural move.`},
+];
+document.getElementById("threads").innerHTML=THREADS.map(t=>`<div class="thread"><div class="thread-ic"><i class="ti ${t.ic}" aria-hidden="true"></i></div><div class="thread-body"><b>${t.title}.</b> ${t.body}</div></div>`).join("");
+
+// production agent map
+const PROD=[
+  {file:"agent.py",desc:"The <b>ReAct loop</b> (L4) — stop_reason check, tool_use echo, guardrails inline, @trace decorators."},
+  {file:"memory.py",desc:"Four <b>memory types</b> (L3) — sliding window, Qdrant RAG, Mem0 episodic, prompt caching."},
+  {file:"routing.py",desc:"The <b>ModelRouter</b> + pricing (L6) — right-sized model selection and per-request cost."},
+  {file:"guardrails.py",desc:"The <b>A→B→C→D pipeline</b> (L7) — PII redactor, injection patterns, rate limiter."},
+  {file:"tools.py",desc:"Four <b>MCP-compatible tools</b> (L4/L5) — JSON-schema definitions the model can call."},
+  {file:"tracer.py",desc:"<b>Span / Trace / @trace</b> (L8) — the observability microscope, OpenTelemetry-style."},
+  {file:"eval/suite.py",desc:"13 <b>golden test cases</b> (L8) — exact-match, tool-call, LLM-judge graders; pass_rate ≥ 0.95 gate."},
+  {file:"main.py",desc:"FastAPI app — <b>/metrics</b> endpoint (L8), /health, /ready, the deploy surface."},
+];
+document.getElementById("prod-grid").innerHTML=PROD.map(p=>`<div class="prow"><span class="file">${p.file}</span><span class="desc">${p.desc}</span></div>`).join("");
+</script>
+</body>
+</html>

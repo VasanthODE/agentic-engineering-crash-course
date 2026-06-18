@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 8 · Observability &amp; Evaluation</title>
+<style>
+  :root{
+    --bg:#FBFAF7; --bg2:#F2F0E9; --bg3:#E9E6DC;
+    --bt:#E7E4DA; --bs:#D5D2C8;
+    --tp:#1b1a18; --ts:#55534d; --tt:#8d8a82;
+    --p:#534AB7; --pl:#7F77DD; --pbg:#EEEDFE; --pink:#3C3489;
+    --t:#0F6E56; --tl:#1D9E75; --tbg:#E1F5EE; --tdk:#085041;
+    --a:#854F0B; --al:#EF9F27; --abg:#FAEEDA; --adk:#633806;
+    --c:#993C1D; --cl:#D85A30; --cbg:#FAECE7; --cdk:#712B13;
+    --b:#185FA5; --bl:#378ADD; --bbg:#E6F1FB; --bdk:#0C447C;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--tp);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--pbg);color:var(--pink)}
+  .shell{max-width:1080px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:240px 1fr;gap:36px}
+  @media(max-width:880px){.shell{grid-template-columns:1fr;gap:0}.spine{display:none}}
+  .hero{grid-column:1/-1;padding:5rem 0 2.5rem;border-bottom:1px solid var(--bt)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--pl);margin-bottom:1.2rem}
+  .hero h1{font-size:clamp(2.4rem,5.5vw,3.8rem);line-height:1.02;letter-spacing:-.03em;font-weight:680;margin:0 0 1.1rem;max-width:17ch}
+  .hero h1 em{font-style:normal;color:var(--p)}
+  .hero p{font-size:1.12rem;color:var(--ts);max-width:60ch;margin:0}
+  .hero .meta{margin-top:2rem;display:flex;gap:28px;flex-wrap:wrap;font-family:var(--mono);font-size:12.5px;color:var(--tt)}
+  .hero .meta b{color:var(--tp);font-weight:600}
+  .spine{position:sticky;top:0;align-self:start;height:100vh;padding-top:3rem;overflow:hidden}
+  .spine-cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tt);margin:0 0 16px 4px}
+  .spine-inner{position:relative;padding-left:26px}
+  .spine-rail{position:absolute;left:7px;top:8px;bottom:38px;width:2px;background:linear-gradient(var(--p),var(--b),var(--a),var(--t),var(--pl));border-radius:2px;opacity:.4}
+  .spine a{display:block;position:relative;padding:8px 0;text-decoration:none;line-height:1.25;transition:all .2s}
+  .spine a .nm{font-size:13px;color:var(--ts)}
+  .spine a .ph{font-family:var(--mono);font-size:10px;color:var(--tt);display:block;margin-top:1px}
+  .spine a::before{content:"";position:absolute;left:-26px;top:11px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:2px solid var(--bs);transition:all .25s}
+  .spine a:hover .nm{color:var(--tp)}
+  .spine a.on .nm{color:var(--tp);font-weight:600}
+  .spine a.on::before{background:var(--p);border-color:var(--p);box-shadow:0 0 0 4px var(--pbg)}
+  .spine-foot{margin-top:18px;padding-left:4px;font-family:var(--mono);font-size:10px;color:var(--pl);line-height:1.5;max-width:20ch}
+  main{padding-top:2rem;padding-bottom:6rem;min-width:0}
+  section{padding:2.6rem 0;border-bottom:1px solid var(--bt);scroll-margin-top:20px}
+  section:last-child{border-bottom:none}
+  .sec-eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pl);margin-bottom:.7rem;display:flex;align-items:center;gap:9px}
+  .sec-eyebrow .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--pbg);color:var(--pink);font-size:11px;font-weight:600}
+  h2{font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.02em;line-height:1.1;font-weight:660;margin:0 0 .9rem}
+  .lead{font-size:1.05rem;color:var(--ts);max-width:62ch;margin:0 0 1.5rem}
+  .lead strong{color:var(--tp);font-weight:620}
+  .takeaway{margin-top:1.4rem;padding:13px 16px;border-radius:10px;font-size:13.5px;line-height:1.65;background:var(--pbg);color:var(--pink);border-left:3px solid var(--p)}
+  .takeaway b{font-weight:650}
+  .hint{font-size:13px;color:var(--ts);margin-bottom:10px}
+  .card{background:var(--bg);border:1px solid var(--bt);border-radius:12px;padding:14px}
+  .mono{font-family:var(--mono)}
+  svg{display:block;max-width:100%}
+  .btn{display:inline-block;padding:7px 15px;font-size:13px;border:1px solid var(--p);border-radius:8px;cursor:pointer;background:var(--pbg);color:var(--pink);font-weight:600;user-select:none}
+  .btn:hover{filter:brightness(.97)}
+  .btn.sec{border-color:var(--bs);background:var(--bg2);color:var(--tp);font-weight:400}
+  .seg{display:flex;gap:6px;margin-bottom:14px}
+  .segbtn{flex:1;padding:8px 10px;font-size:13px;text-align:center;border:1px solid var(--bs);border-radius:8px;cursor:pointer;background:var(--bg2);color:var(--ts);transition:all .15s;user-select:none}
+  .segbtn.on{font-weight:600}
+  .read{margin-top:14px;padding:12px 15px;border-radius:8px;font-size:13px;line-height:1.65}
+  .read.p{background:var(--pbg);color:var(--pink);border-left:3px solid var(--p)}
+  .read.bad{background:var(--cbg);color:var(--cdk);border-left:3px solid var(--c)}
+  .read.good{background:var(--tbg);color:var(--tdk);border-left:3px solid var(--t)}
+  .read.a{background:var(--abg);color:var(--adk);border-left:3px solid var(--a)}
+  .read.b{background:var(--bbg);color:var(--bdk);border-left:3px solid var(--b)}
+  .panel{display:none}.panel.on{display:block}
+  code{font-family:var(--mono);font-size:.92em;background:var(--bg2);padding:1px 5px;border-radius:4px}
+  .footer{grid-column:1/-1;padding:3rem 0 4rem;text-align:center;color:var(--tt);font-size:13px;font-family:var(--mono)}
+  .footer .chain{color:var(--ts);font-family:var(--sans);font-size:14px;line-height:1.9;max-width:64ch;margin:0 auto 1.5rem}
+  .footer .chain b{color:var(--p);font-weight:600}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="hero">
+    <div class="eyebrow">AI Agent Engineering · Lesson 8 · Finale</div>
+    <h1>Observability &amp; <em>evaluation</em></h1>
+    <p>The lesson that makes every other lesson trustworthy. How do you actually KNOW the agent works — and keep knowing it as the world changes? Two halves: see what happened (observability), and measure if it's good (evaluation).</p>
+    <div class="meta">
+      <span>microscope + dashboard = <b>the feedback loop</b></span>
+      <span><b>5</b> interactive demos</span>
+      <span>read order: <b>top to bottom</b></span>
+    </div>
+  </header>
+
+  <nav class="spine">
+    <div class="spine-cap">the feedback loop</div>
+    <div class="spine-inner">
+      <div class="spine-rail"></div>
+      <a href="#two" data-sec="two"><span class="nm">Two questions</span><span class="ph">observe vs evaluate</span></a>
+      <a href="#tracing" data-sec="tracing"><span class="nm">Tracing</span><span class="ph">the microscope</span></a>
+      <a href="#pillars" data-sec="pillars"><span class="nm">Logs &amp; metrics</span><span class="ph">the three pillars</span></a>
+      <a href="#eval" data-sec="eval"><span class="nm">Evaluation</span><span class="ph">graders &amp; pass rate</span></a>
+      <a href="#gate" data-sec="gate"><span class="nm">Deploy gate</span><span class="ph">the flywheel</span></a>
+      <div class="spine-foot">↻ observe → evaluate<br>→ improve → repeat</div>
+    </div>
+  </nav>
+
+  <main>
+
+  <!-- 00 TWO QUESTIONS -->
+  <section id="two">
+    <div class="sec-eyebrow"><span class="n">01</span> The distinction</div>
+    <h2>Two questions, two tools</h2>
+    <p class="lead">An agent is non-deterministic, multi-step, and calls external systems — so "it works" needs proof. Two complementary capabilities provide it. A concrete problem makes the split clear.</p>
+    <div id="two-root">
+      <div class="card" style="background:#FAECE7;border-color:#993C1D;color:#712B13;font-size:13px;margin-bottom:14px"><b>A problem arrives:</b> users report the agent is giving wrong refund amounts. Two different tools, two different questions:</div>
+      <div class="seg" id="oe-seg">
+        <div class="segbtn on" data-m="obs">Observability<span style="font-size:10px;display:block;margin-top:2px;opacity:.8">"what happened in THIS run?"</span></div>
+        <div class="segbtn" data-m="eval">Evaluation<span style="font-size:10px;display:block;margin-top:2px;opacity:.8">"is the agent good ACROSS runs?"</span></div>
+      </div>
+      <div class="panel on" id="oe-obs">
+        <div class="card"><div style="font-size:11px;color:var(--tt);font-family:var(--mono);margin-bottom:8px">trace · run #8f2a · one user's failing request</div><div id="oe-trace"></div></div>
+        <div class="read b" id="oe-obs-note"></div>
+      </div>
+      <div class="panel" id="oe-eval">
+        <div class="card"><div style="font-size:11px;color:var(--tt);font-family:var(--mono);margin-bottom:8px">eval suite · run on every change · refund test cases</div><div id="oe-cases"></div><div style="display:flex;align-items:center;gap:10px;margin:10px 0"><span style="font-size:12px;color:var(--ts);min-width:64px">pass rate</span><div style="flex:1;height:20px;background:var(--bg2);border-radius:5px;overflow:hidden"><div id="oe-ratefill" style="height:100%;border-radius:5px"></div></div><span style="font-family:var(--mono);font-size:13px;font-weight:600;min-width:46px" id="oe-rate"></span></div></div>
+        <div class="read a" id="oe-eval-note"></div>
+      </div>
+      <div class="read p" id="oe-unify"></div>
+    </div>
+    <div class="takeaway"><b>You need both.</b> Observability is the microscope (one run, reactive, debug); evaluation is the dashboard (many runs, proactive, gate). Together: the difference between "I think it works" and "I know it works — and I'll know the moment it stops." These are the production agent's <code>tracer.py</code> and <code>eval/suite.py</code>.</div>
+  </section>
+
+  <!-- 01 TRACING -->
+  <section id="tracing">
+    <div class="sec-eyebrow"><span class="n">02</span> The microscope</div>
+    <h2>Tracing</h2>
+    <p class="lead">A single agent run is a <strong>tree</strong> of nested steps. A <strong>trace</strong> is the whole run; a <strong>span</strong> is one unit of work (an LLM call, a tool call, a guardrail). The tree mirrors the ReAct loop.</p>
+    <div id="tr-root">
+      <div class="seg" id="tr-seg">
+        <div class="segbtn on" data-m="tree">The trace tree</div>
+        <div class="segbtn" data-m="decorator">How it's built · @trace</div>
+      </div>
+      <div class="panel on" id="tr-tree">
+        <div class="hint">One agent run — a refund request that looped twice. Each bar is a span; click any to inspect it:</div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--tt);margin-bottom:8px;padding-left:160px"><span>0ms</span><span>500</span><span>1000</span><span>1500</span><span>1950ms</span></div>
+          <div id="tr-rows"></div>
+        </div>
+        <div id="tr-detail" style="margin-top:12px;border-radius:8px;padding:13px 15px;font-size:12.5px;line-height:1.6;background:var(--bg2)"></div>
+      </div>
+      <div class="panel" id="tr-decorator">
+        <div class="hint">A span doesn't appear by magic. The <code>@trace</code> decorator wraps a function so it records itself:</div>
+        <div style="background:#1b1a18;border-radius:12px;padding:14px;font-family:var(--mono);font-size:11.5px;line-height:1.7;color:#a8a59d">
+<span style="color:#EF9F27">@trace</span>  <span style="color:#6a675f"># ← wraps the function as a span</span>
+<span style="color:#D85A30">def</span> <span style="color:#5DCAA5">calc_refund</span>(order_id, reason):
+    <span style="color:#6a675f"># your normal logic</span>
+    <span style="color:#D85A30">return</span> compute(order_id, reason)
+        </div>
+        <div style="text-align:center;font-size:18px;color:var(--tt);margin:8px 0">↓ produces ↓</div>
+        <div class="card" style="border-color:#534AB7">
+          <div style="font-family:var(--mono);font-size:11px;color:#534AB7;margin-bottom:7px">span: calc_refund</div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-family:var(--mono);font-size:11.5px">
+            <span style="color:var(--tt)">trace_id</span><span style="color:var(--tp)">8f2a… (shared by all spans in the run)</span>
+            <span style="color:var(--tt)">parent</span><span style="color:var(--tp)">agent.run (from the call stack)</span>
+            <span style="color:var(--tt)">start → end</span><span style="color:var(--tp)">1540ms → 1660ms (120ms)</span>
+            <span style="color:var(--tt)">status</span><span style="color:var(--tp)">ok</span>
+            <span style="color:var(--tt)">inputs</span><span style="color:var(--tp)">{order_id: 1234, reason: "damaged"}</span>
+            <span style="color:var(--tt)">output</span><span style="color:var(--tp)">$50.00</span>
+          </div>
+        </div>
+        <div class="read p">The decorator records the <strong>start</strong>, runs the function, records the <strong>end + status + result</strong>, and links the span to whatever <code>@trace</code> function called it — so <strong>nesting comes free from the call stack</strong>. Every span shares one <code>trace_id</code>, which reassembles scattered steps into one tree. Three things every span captures:</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">
+          <div class="card" style="background:var(--bg2);text-align:center"><div style="font-size:12px;font-weight:500;color:#185FA5;margin-bottom:3px">Timing</div><div style="font-size:10.5px;color:var(--ts);line-height:1.4">start, end, duration — where latency goes</div></div>
+          <div class="card" style="background:var(--bg2);text-align:center"><div style="font-size:12px;font-weight:500;color:#993C1D;margin-bottom:3px">Status</div><div style="font-size:10.5px;color:var(--ts);line-height:1.4">ok / error — where it failed</div></div>
+          <div class="card" style="background:var(--bg2);text-align:center"><div style="font-size:12px;font-weight:500;color:#854F0B;margin-bottom:3px">Attributes</div><div style="font-size:10.5px;color:var(--ts);line-height:1.4">inputs, outputs, tokens, cost, model</div></div>
+        </div>
+        <div class="read good">This is the <code>Span</code> / <code>Trace</code> / <code>@trace</code> model in your production agent's <code>tracer.py</code> — the same OpenTelemetry-style distributed tracing used to debug microservices. Agents need it even more: one run fans out into many non-deterministic steps a flat log can't untangle.</div>
+      </div>
+    </div>
+    <div class="takeaway"><b>A trace answers three questions at a glance:</b> where's the latency (longest bars), where's the cost (token-heavy LLM spans), and where did it fail (the error span). The tree structure — not a flat log — is why tracing is essential for multi-step agents.</div>
+  </section>
+
+  <!-- 02 PILLARS -->
+  <section id="pillars">
+    <div class="sec-eyebrow"><span class="n">03</span> Aggregate visibility</div>
+    <h2>Logs &amp; metrics</h2>
+    <p class="lead">You can't watch every trace by hand. The full picture is <strong>three pillars</strong>: traces (one run), logs (the searchable event stream), metrics (the aggregate health dashboard) — and they chain into a debugging funnel.</p>
+    <div id="lm-root">
+      <div class="seg" id="lm-seg">
+        <div class="segbtn on" data-m="pillars">Three pillars, one funnel</div>
+        <div class="segbtn" data-m="metrics">What to measure</div>
+      </div>
+      <div class="panel on" id="lm-pillars-panel">
+        <div class="hint">Metrics, logs, and traces are a funnel from aggregate to specific. Click each:</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px" id="lm-pillars"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:12px 0;font-size:11px;font-family:var(--mono);color:var(--tt);flex-wrap:wrap">
+          <b style="background:#FAECE7;color:#993C1D;padding:3px 9px;border-radius:12px">metrics: something's wrong</b> →
+          <b style="background:#E6F1FB;color:#0C447C;padding:3px 9px;border-radius:12px">logs: narrow it down</b> →
+          <b style="background:#EEEDFE;color:#3C3489;padding:3px 9px;border-radius:12px">trace: root cause</b>
+        </div>
+        <div id="lm-detail" style="margin-top:8px;border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.7"></div>
+      </div>
+      <div class="panel" id="lm-metrics">
+        <div class="hint">The key agent metrics — what a <code>/metrics</code> endpoint exposes:</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+          <div class="card" style="background:var(--bg2);text-align:center"><div style="font-size:10.5px;color:var(--tt)">request rate</div><div style="font-size:18px;font-weight:600;color:#185FA5">42/s</div></div>
+          <div class="card" style="background:var(--bg2);text-align:center"><div style="font-size:10.5px;color:var(--tt)">error rate</div><div style="font-size:18px;font-weight:600;color:#0F6E56">0.8%</div></div>
+          <div class="card" style="background:var(--bg2);text-align:center"><div style="font-size:10.5px;color:var(--tt)">cost / req</div><div style="font-size:18px;font-weight:600;color:#854F0B">$0.013</div></div>
+          <div class="card" style="background:var(--bg2);text-align:center"><div style="font-size:10.5px;color:var(--tt)">tokens / req</div><div style="font-size:18px;font-weight:600;color:#534AB7">3.9k</div></div>
+          <div class="card" style="background:var(--bg2);text-align:center"><div style="font-size:10.5px;color:var(--tt)">tool calls / req</div><div style="font-size:18px;font-weight:600;color:#185FA5">2.1</div></div>
+          <div class="card" style="background:var(--bg2);text-align:center"><div style="font-size:10.5px;color:var(--tt)">fallback rate</div><div style="font-size:18px;font-weight:600;color:#854F0B">1.2%</div></div>
+        </div>
+        <div class="hint">But the most misunderstood metric is <strong>latency</strong>. Watch why an average lies:</div>
+        <div class="card"><svg viewBox="0 0 660 150" role="img" aria-label="Latency distribution"><g id="lm-lat"></g></svg></div>
+        <div class="read p" id="lm-lat-note"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>The trace_id stitches the funnel.</b> It's stamped on every log line and names the trace, so you jump from alert → events → exact failing run in seconds. And <b>never trust an average for latency</b> — watch p95/p99, because agents have long tails from looping and fallbacks.</div>
+  </section>
+
+  <!-- 03 EVAL -->
+  <section id="eval">
+    <div class="sec-eyebrow"><span class="n">04</span> Proactive quality</div>
+    <h2>Evaluation</h2>
+    <p class="lead">An <strong>eval suite</strong> is unit tests for your agent: golden cases with known answers, run on every change. The hard part isn't running them — it's <strong>grading</strong> a fuzzy, non-deterministic output.</p>
+    <div id="ev-root">
+      <div class="seg" id="ev-seg">
+        <div class="segbtn on" data-m="grade">Grading the fuzzy output</div>
+        <div class="segbtn" data-m="suite">The suite &amp; pass rate</div>
+      </div>
+      <div class="panel on" id="ev-grade">
+        <div class="hint">Three graders — click each to see what it catches and misses:</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px" id="ev-graders"></div>
+        <div id="ev-grade-detail" style="margin-top:10px;border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.6"></div>
+      </div>
+      <div class="panel" id="ev-suite">
+        <div class="hint">A suite mixes graders, one per case's output type. The pass rate is your aggregate quality score:</div>
+        <div id="ev-cases"></div>
+        <div style="display:flex;align-items:center;gap:10px;margin:12px 0"><span style="font-size:12px;color:var(--ts);min-width:64px">pass rate</span><div style="flex:1;height:22px;background:var(--bg2);border-radius:5px;overflow:hidden"><div id="ev-rate-fill" style="height:100%;border-radius:5px;transition:width .5s"></div></div><span style="font-family:var(--mono);font-size:14px;font-weight:600;min-width:46px" id="ev-rate-val"></span></div>
+        <div class="read p" id="ev-suite-note"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Match the grader to the output type</b> — exact match for structured, tool-call for behavior, LLM-judge for fuzzy text. The suite is ALIVE: every production failure becomes a new golden case. Evaluation is how you <em>manufacture</em> the verifiable feedback (Lesson 4) that any domain needs.</div>
+  </section>
+
+  <!-- 04 GATE -->
+  <section id="gate">
+    <div class="sec-eyebrow"><span class="n">05</span> Enforcement &amp; the loop</div>
+    <h2>The deploy gate</h2>
+    <p class="lead">An eval suite is just a report until it has teeth. The deploy gate wires it into CI: a drop in pass rate <strong>blocks the deploy</strong>. Bad changes physically can't reach users — test-gated CI for agent quality.</p>
+    <div id="dg-root">
+      <div class="seg" id="dg-seg">
+        <div class="segbtn on" data-m="gate">The gate</div>
+        <div class="segbtn" data-m="flywheel">The flywheel</div>
+      </div>
+      <div class="panel on" id="dg-gate">
+        <div class="hint">A developer pushes a change. CI runs the eval suite and the gate decides. Pick a change:</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px" id="dg-changes"></div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:14px" id="dg-stages"></div>
+          <div style="font-size:11px;color:var(--tt);font-family:var(--mono);margin-bottom:2px">eval pass rate vs deploy threshold (≥ 95%)</div>
+          <div style="position:relative;height:30px;background:var(--bg2);border-radius:6px;overflow:hidden;margin:14px 0 6px">
+            <div id="dg-ratefill" style="height:100%;width:0%;transition:width .7s"></div>
+            <div style="position:absolute;top:-4px;bottom:-4px;width:2px;background:#1b1a18;left:95%"></div>
+            <div style="position:absolute;top:-18px;font-size:9.5px;font-family:var(--mono);color:#1b1a18;transform:translateX(-50%);left:95%">95%</div>
+          </div>
+          <div style="text-align:right;font-family:var(--mono);font-size:12px;font-weight:600" id="dg-ratenum"></div>
+          <div id="dg-verdict" style="display:none;margin-top:14px;padding:13px 15px;border-radius:8px;font-size:13px;line-height:1.6;font-weight:500;text-align:center"></div>
+        </div>
+        <div class="read p" id="dg-gate-note"></div>
+      </div>
+      <div class="panel" id="dg-flywheel">
+        <div class="hint">Observability and evaluation aren't separate — they're a loop. Click each stage:</div>
+        <div class="card"><svg viewBox="0 0 680 300" role="img" aria-label="Continuous improvement flywheel"><g id="dg-fly-svg"></g></svg></div>
+        <div id="dg-fly-detail" style="margin-top:12px;border-radius:8px;padding:13px 15px;font-size:13px;line-height:1.65"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>The flywheel binds the whole lesson:</b> Deploy → Observe → Catch a failure → Add a golden case → Improve + gate → Deploy. Observability (reactive) feeds evaluation (proactive) at the "add a case" hinge. Ship with confidence, not prayer.</div>
+  </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="chain">
+      The two halves of knowing it works. <b>Observability</b> is the microscope — traces, logs, metrics — answering "what happened?" reactively. <b>Evaluation</b> is the dashboard — golden cases, graders, pass rate, deploy gate — answering "is it good?" proactively. The <b>flywheel</b> binds them: observe → catch → add a case → improve → gate → deploy. This is the lesson that makes every other lesson trustworthy — and evaluation is how you manufacture the verifiable feedback that made coding the killer app (Lesson 4).
+    </div>
+    Lesson 8 · Observability &amp; Evaluation — interactive study companion · the roadmap is complete
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const links=[...document.querySelectorAll('.spine a')];
+  const map={};links.forEach(l=>map[l.dataset.sec]=l);
+  const obs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('on'));if(map[e.target.id])map[e.target.id].classList.add('on');}});},{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('main section').forEach(s=>obs.observe(s));
+})();
+
+/* 00 TWO QUESTIONS */
+(function(){
+  const root=document.getElementById('two-root');
+  const SPANS=[
+    {w:100,bad:false,label:"agent.run                    1,840ms"},
+    {w:8,bad:false,label:"  guardrail.input             40ms ✓"},
+    {w:34,bad:false,label:"  llm.call (reason)           620ms ✓"},
+    {w:22,bad:false,label:"  tool.lookup_order          410ms ✓"},
+    {w:24,bad:true,label:"  tool.calc_refund           450ms ✗ returned $500 (expected $50)"},
+    {w:18,bad:false,label:"  llm.call (respond)         320ms ✓"},
+  ];
+  function renderTrace(){
+    document.getElementById("oe-trace").innerHTML=SPANS.map(s=>{
+      const col=s.bad?"#D85A30":(s.label.includes("agent.run")?"#534AB7":s.label.includes("guardrail")?"#185FA5":s.label.includes("tool")?"#854F0B":"#0F6E56");
+      return `<div style="display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:6px;margin-bottom:4px;font-size:12px;font-family:var(--mono);${s.bad?'background:#FAECE7;color:#993C1D;font-weight:500':'color:var(--ts)'}"><div style="height:9px;border-radius:3px;flex-shrink:0;width:${s.w*1.6}px;background:${col};opacity:${s.bad?1:.55}"></div><span>${s.label}</span></div>`;
+    }).join("");
+    document.getElementById("oe-obs-note").innerHTML=`<b>Observability answers "what happened in THIS run?"</b> The trace breaks the request into spans. You see exactly where it went wrong: <code>tool.calc_refund</code> returned $500 instead of $50 — a bug in the refund tool, not the model. Observability is <strong>per-run, reactive, for debugging</strong>. But it can't tell you how OFTEN this happens or whether a fix worked across the board.`;
+  }
+  const CASES=[{name:"refund · damaged item",pass:false},{name:"refund · within window",pass:false},{name:"refund · partial",pass:true},{name:"refund · over $500 (needs approval)",pass:true},{name:"refund · ineligible",pass:true},{name:"refund · currency formatting",pass:false}];
+  function renderCases(){
+    document.getElementById("oe-cases").innerHTML=CASES.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;margin-bottom:5px;font-size:12px;${c.pass?'background:#E1F5EE;color:#085041':'background:#FAECE7;color:#712B13'}"><span style="width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;${c.pass?'background:#0F6E56;color:white':'background:#993C1D;color:white'}">${c.pass?'✓':'✗'}</span><span style="flex:1">${c.name}</span><span style="font-family:var(--mono);font-size:10.5px">${c.pass?'pass':'FAIL'}</span></div>`).join("");
+    const passes=CASES.filter(c=>c.pass).length,rate=Math.round(passes/CASES.length*100);
+    const fill=document.getElementById("oe-ratefill");fill.style.width=rate+"%";fill.style.background=rate>=95?"#0F6E56":rate>=80?"#854F0B":"#993C1D";
+    document.getElementById("oe-rate").textContent=rate+"%";document.getElementById("oe-rate").style.color=rate>=95?"#0F6E56":rate>=80?"#854F0B":"#993C1D";
+    document.getElementById("oe-eval-note").innerHTML=`<b>Evaluation answers "is the agent good ACROSS runs?"</b> A fixed set of test cases with known answers, run on every change. The refund suite dropped to ${rate}% — three fail. Evaluation is <strong>aggregate, proactive, for quality-gating</strong>: it catches the regression before it ships. But it tells you the score, not the story.`;
+  }
+  document.getElementById("oe-unify").innerHTML=`<strong>You need both — complementary, not competing.</strong> Observability is the microscope (one run, reactively, to debug); evaluation is the dashboard (many runs, proactively, to gate). Observability without evaluation: you can debug but never know if you're improving. Evaluation without observability: you know the score dropped but not why. Together: "I think it works" → "I know it works, and I'll know the moment it stops."`;
+  function setMode(m){root.querySelectorAll("#oe-seg .segbtn").forEach(b=>{const on=b.dataset.m===m;b.classList.toggle("on",on);b.style.background=on?(m==="obs"?"#E6F1FB":"#FAEEDA"):"";b.style.borderColor=on?(m==="obs"?"#185FA5":"#854F0B"):"";b.style.color=on?(m==="obs"?"#0C447C":"#633806"):"";});document.getElementById("oe-obs").classList.toggle("on",m==="obs");document.getElementById("oe-eval").classList.toggle("on",m==="eval");}
+  root.querySelectorAll("#oe-seg .segbtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  setMode("obs");renderTrace();renderCases();
+})();
+
+/* 01 TRACING */
+(function(){
+  const root=document.getElementById('tr-root');
+  const TOTAL=1950;
+  const SPANS=[
+    {name:"agent.run",depth:0,start:0,dur:1950,color:"#534AB7",status:"ok",attrs:{trace_id:"8f2a4c…",spans:"8 total",duration:"1,950ms",status:"ok",cost:"$0.0142",tokens:"3,940 total"},note:"The <strong>root span</strong> — the whole request, end to end. Children are every step inside. 1,950ms and $0.0142 total. The run you'd open from a log line or alert."},
+    {name:"guardrail.input",depth:1,start:10,dur:40,color:"#185FA5",status:"ok",attrs:{check:"injection+PII+scope",result:"pass",duration:"40ms"},note:"Input guardrails (Lesson 7) ran first — 40ms, passed. Tracing confirms guardrails aren't a latency bottleneck."},
+    {name:"llm.call (reason)",depth:1,start:55,dur:620,color:"#0F6E56",status:"ok",attrs:{model:"sonnet",input_tokens:"1,200",output_tokens:"90",stop_reason:"tool_use",cost:"$0.0049",duration:"620ms"},note:"Iteration 1's reasoning — the model chose a tool (stop_reason: tool_use, Lesson 4). LLM calls are usually your biggest latency AND cost spans."},
+    {name:"tool.lookup_order",depth:1,start:680,dur:410,color:"#854F0B",status:"ok",attrs:{args:"{order_id: 1234}",result:"{delivered, damaged}",duration:"410ms"},note:"Iteration 1's action. 410ms is slow for a lookup — the trace flags it as a candidate to optimize. Exact args and result visible."},
+    {name:"llm.call (reason)",depth:1,start:1095,dur:440,color:"#0F6E56",status:"ok",attrs:{model:"sonnet",input_tokens:"1,440",output_tokens:"60",stop_reason:"tool_use",cost:"$0.0052",duration:"440ms"},note:"Iteration 2 — input tokens GREW (1,440 vs 1,200): the loop resent the growing message array with the first tool result (Lesson 3 memory, Lesson 4 loop). Context accumulating, visible call over call."},
+    {name:"tool.calc_refund",depth:1,start:1540,dur:120,color:"#854F0B",status:"ok",attrs:{args:"{order_id: 1234, reason: damaged}",result:"$50.00",duration:"120ms"},note:"Iteration 2's action — the refund calc. THIS is the span you'd inspect when refunds look wrong (the earlier bug). Exact inputs and output visible."},
+    {name:"llm.call (respond)",depth:1,start:1665,dur:230,color:"#0F6E56",status:"ok",attrs:{model:"sonnet",input_tokens:"1,580",output_tokens:"110",stop_reason:"end_turn",cost:"$0.0041",duration:"230ms"},note:"The final response — stop_reason: end_turn means done (Lesson 4), loop exits. Three LLM calls total — tracing reveals how many iterations the agent really took."},
+    {name:"guardrail.output",depth:1,start:1900,dur:45,color:"#185FA5",status:"ok",attrs:{check:"PII+grounding+policy",result:"pass",duration:"45ms"},note:"Output guardrails (Lesson 7) screened the response — 45ms, passed. The complete request lifecycle, every boundary in one tree."},
+  ];
+  let sel=0;
+  function renderRows(){
+    document.getElementById("tr-rows").innerHTML=SPANS.map((s,i)=>{
+      const left=(s.start/TOTAL*100),w=Math.max(2,(s.dur/TOTAL*100)),indent=s.depth*14;
+      return `<div data-i="${i}" style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;border-radius:5px;padding:2px 4px;${i===sel?'background:#EEEDFE':''}"><span style="width:152px;flex-shrink:0;font-family:var(--mono);font-size:11px;color:var(--tp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:${indent}px;${s.depth===0?'font-weight:600':''}">${s.depth>0?'└ ':''}${s.name}</span><span style="flex:1;position:relative;height:18px"><span style="position:absolute;height:18px;border-radius:4px;display:flex;align-items:center;padding:0 6px;font-family:var(--mono);font-size:9.5px;color:white;white-space:nowrap;overflow:hidden;left:${left}%;width:${w}%;background:${s.color};opacity:${s.depth===0?.9:.8}">${s.dur}ms</span></span></div>`;
+    }).join("");
+  }
+  function renderDetail(){
+    const s=SPANS[sel];
+    document.getElementById("tr-detail").innerHTML=`<div style="font-family:var(--mono);font-size:12px;color:${s.color};margin-bottom:4px">span: ${s.name} · <span style="color:${s.status==='ok'?'#0F6E56':'#993C1D'}">${s.status}</span></div><div style="color:var(--ts)">${s.note}</div><div style="display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-family:var(--mono);font-size:11.5px;margin-top:8px">${Object.entries(s.attrs).map(([k,v])=>`<span style="color:var(--tt)">${k}</span><span style="color:var(--tp)">${v}</span>`).join("")}</div>`;
+  }
+  document.getElementById("tr-rows").addEventListener("click",e=>{const el=e.target.closest("[data-i]");if(!el)return;sel=+el.dataset.i;renderRows();renderDetail();});
+  function setMode(m){root.querySelectorAll("#tr-seg .segbtn").forEach(b=>{const on=b.dataset.m===m;b.classList.toggle("on",on);b.style.background=on?"#EEEDFE":"";b.style.borderColor=on?"#534AB7":"";b.style.color=on?"#3C3489":"";});document.getElementById("tr-tree").classList.toggle("on",m==="tree");document.getElementById("tr-decorator").classList.toggle("on",m==="decorator");}
+  root.querySelectorAll("#tr-seg .segbtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  setMode("tree");renderRows();renderDetail();
+})();
+
+/* 02 PILLARS */
+(function(){
+  const root=document.getElementById('lm-root');
+  const PILLARS=[
+    {id:"metrics",ic:"ti-gauge",color:"#993C1D",bg:"#FAECE7",dk:"#712B13",name:"Metrics",q:'"is it healthy NOW?"',what:"Numeric aggregates over time — counts, rates, percentiles. Cheap, always-on, the basis of dashboards and alerts.",role:"The smoke alarm. Metrics tell you THAT something broke, instantly and in aggregate — not what. An alert fires: 'error rate jumped to 6%.'",ex:"Alert: p95 latency spiked to 8s at 14:32."},
+    {id:"logs",ic:"ti-list-search",color:"#185FA5",bg:"#E6F1FB",dk:"#0C447C",name:"Logs",q:'"what events happened?"',what:"A timestamped, searchable stream of discrete events. STRUCTURED (JSON with fields), so you filter by user, error, endpoint, time.",role:"The search. Once metrics say something's wrong, logs narrow it: which requests, which users, which error. Each line carries a trace_id.",ex:"Filter → 200 errors, all calc_refund, all with trace_ids."},
+    {id:"traces",ic:"ti-binary-tree-2",color:"#534AB7",bg:"#EEEDFE",dk:"#3C3489",name:"Traces",q:'"what happened in ONE run?"',what:"The full tree of spans for a single run. The deepest view — but you can't watch them all, so you arrive guided by metrics and logs.",role:"The microscope. Open the trace_id from a failing log and see the exact span that broke, with inputs and outputs. Root cause pinpointed.",ex:"Open trace 8f2a → calc_refund returned $500, not $50."},
+  ];
+  let sel="metrics";
+  function renderPillars(){
+    document.getElementById("lm-pillars").innerHTML=PILLARS.map(p=>`<div data-id="${p.id}" style="border-radius:8px;padding:12px 11px;cursor:pointer;border:${p.id===sel?'2px':'1px'} solid ${p.id===sel?p.color:'var(--bt)'};background:${p.id===sel?p.bg:'var(--bg)'};text-align:center"><div style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;margin:0 auto 7px;background:${p.bg};color:${p.color}"><i class="ti ${p.ic}" aria-hidden="true"></i></div><div style="font-size:13px;font-weight:500;color:${p.color}">${p.name}</div><div style="font-size:10.5px;color:var(--ts);margin-top:3px;line-height:1.35">${p.q}</div></div>`).join("");
+    const p=PILLARS.find(x=>x.id===sel);
+    const d=document.getElementById("lm-detail");d.style.background=p.bg;
+    d.innerHTML=`<div style="margin-bottom:9px"><div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;color:${p.color}">What it is</div><div style="color:${p.dk}">${p.what}</div></div><div style="margin-bottom:9px"><div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;color:${p.color}">Its role in the funnel</div><div style="color:${p.dk}">${p.role}</div></div><div><div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;color:${p.color}">In this incident</div><div style="color:${p.dk}">${p.ex}</div></div>${p.id==="logs"?`<div style="font-family:var(--mono);font-size:10.5px;background:#1b1a18;border-radius:7px;padding:9px 11px;color:#a8a59d;line-height:1.7;margin-top:8px;overflow-x:auto;white-space:nowrap">{"ts":"14:32:07","level":<span style="color:#D85A30">"error"</span>,"event":"tool_failed","tool":"calc_refund","user":"u_8821",<span style="color:#7F77DD">"trace_id":"8f2a4c"</span>,"msg":"refund mismatch"}</div>`:""}`;
+  }
+  document.getElementById("lm-pillars").addEventListener("click",e=>{const el=e.target.closest("[data-id]");if(!el)return;sel=el.dataset.id;renderPillars();});
+  function drawLatency(){
+    const bars=[{x:60,h:70,lat:"0.5s"},{x:110,h:95,lat:"1s"},{x:160,h:60,lat:"1.5s"},{x:210,h:38,lat:"2s"},{x:260,h:22,lat:"3s"},{x:310,h:14,lat:"4s"},{x:360,h:10,lat:"5s"},{x:410,h:8,lat:"6s"},{x:460,h:7,lat:"7s"},{x:510,h:6,lat:"8s"},{x:560,h:5,lat:"10s"},{x:600,h:4,lat:"15s"}];
+    let s="";const baseY=110;
+    bars.forEach(b=>{s+=`<rect x="${b.x}" y="${baseY-b.h}" width="38" height="${b.h}" rx="2" fill="#7F77DD" opacity="0.6"/><text x="${b.x+19}" y="${baseY+12}" text-anchor="middle" style="font-size:8px;fill:var(--tt)">${b.lat}</text>`;});
+    const markers=[{x:135,label:"avg ≈ 1.2s",color:"#0F6E56"},{x:120,label:"p50",color:"#185FA5"},{x:430,label:"p95 ≈ 6s",color:"#854F0B"},{x:560,label:"p99 ≈ 10s",color:"#993C1D"}];
+    markers.forEach(m=>{s+=`<line x1="${m.x}" y1="20" x2="${m.x}" y2="${baseY}" stroke="${m.color}" stroke-width="1.5" stroke-dasharray="3 3"/><text x="${m.x}" y="16" text-anchor="middle" style="font-size:9.5px;font-weight:600;fill:${m.color}">${m.label}</text>`;});
+    s+=`<text x="630" y="${baseY+12}" text-anchor="end" style="font-size:8px;fill:var(--tt)">slow tail →</text>`;
+    document.getElementById("lm-lat").innerHTML=s;
+    document.getElementById("lm-lat-note").innerHTML=`<strong>The average hides the tail.</strong> Most requests are fast, so the <span style="color:#0F6E56;font-weight:600">average (~1.2s)</span> looks healthy — but conceals that <span style="color:#993C1D;font-weight:600">1% of users wait 10+ seconds</span>. Track <strong>percentiles</strong>: <span style="color:#185FA5;font-weight:600">p50</span> (typical), <span style="color:#854F0B;font-weight:600">p95</span>/<span style="color:#993C1D;font-weight:600">p99</span> (worst real experiences) — where timeouts, slow tools, and runaway loops hide. <strong>Never trust an average for latency.</strong> Agents have especially long tails: a request can loop many times or hit a slow fallback.`;
+  }
+  function setMode(m){root.querySelectorAll("#lm-seg .segbtn").forEach(b=>{const on=b.dataset.m===m;b.classList.toggle("on",on);b.style.background=on?"#EEEDFE":"";b.style.borderColor=on?"#534AB7":"";b.style.color=on?"#3C3489":"";});document.getElementById("lm-pillars-panel").classList.toggle("on",m==="pillars");document.getElementById("lm-metrics").classList.toggle("on",m==="metrics");if(m==="metrics")drawLatency();}
+  root.querySelectorAll("#lm-seg .segbtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  setMode("pillars");renderPillars();
+})();
+
+/* 03 EVAL */
+(function(){
+  const root=document.getElementById('ev-root');
+  const GRADERS=[
+    {id:"exact",color:"#185FA5",bg:"#E6F1FB",dk:"#0C447C",name:"Exact match",forr:"structured outputs",what:"Output must equal the expected string exactly. Deterministic, free, instant.",good:"Classifications, labels, specific values, a JSON field.",weak:"Brittle on free text: a correct paraphrase fails.",ex:[{label:"expected",txt:'"Net profit was $4.2M"',v:null},{label:"output A",txt:'"Net profit was $4.2M"',v:"pass"},{label:"output B",txt:'"Net profit came to $4.2 million"',v:"fail",note:"same meaning — wrongly failed!"}]},
+    {id:"tool",color:"#854F0B",bg:"#FAEEDA",dk:"#633806",name:"Tool-call match",forr:"agent behavior",what:"Checks whether the agent called the right TOOL with the right ARGS — grading the action, not the prose.",good:"Agentic tasks: did it look up the order? issue the right refund? Robust to wording.",weak:"Only checks the call, not the final answer quality.",ex:[{label:"expected",txt:'calc_refund(order=1234, reason="damaged")',v:null},{label:"agent did",txt:'calc_refund(order=1234, reason="damaged")',v:"pass",note:"right tool, right args → correct behavior"},{label:"if instead",txt:'lookup_order(1234) only — never refunded',v:"fail",note:"wrong action, regardless of wording"}]},
+    {id:"judge",color:"#0F6E56",bg:"#E1F5EE",dk:"#085041",name:"LLM-as-judge",forr:"fuzzy free text",what:"A model grades the output against a rubric: 'is this correct, grounded, helpful?' Handles nuance and paraphrase.",good:"Open-ended answers — summaries, explanations, support replies.",weak:"Costs a model call, can be biased/wrong, needs a good rubric. Validate your judge.",ex:[{label:"rubric",txt:'"Correct + grounded in the source?"',v:null},{label:"output B",txt:'"Net profit came to $4.2 million"',v:"pass",note:"judge sees the paraphrase IS correct → pass"},{label:"output C",txt:'"Net profit was around $8M"',v:"fail",note:"judge catches the wrong figure"}]},
+  ];
+  let g="exact";
+  function renderGraders(){
+    document.getElementById("ev-graders").innerHTML=GRADERS.map(x=>`<div data-id="${x.id}" style="border-radius:8px;padding:11px 10px;cursor:pointer;border:${x.id===g?'2px':'1px'} solid ${x.id===g?x.color:'var(--bt)'};background:${x.id===g?x.bg:'var(--bg)'};text-align:center"><div style="font-size:12.5px;font-weight:500;color:${x.color}">${x.name}</div><div style="font-size:10px;color:var(--ts);margin-top:2px;line-height:1.3">for ${x.forr}</div></div>`).join("");
+    const x=GRADERS.find(y=>y.id===g);
+    const d=document.getElementById("ev-grade-detail");d.style.background=x.bg;
+    d.innerHTML=`<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;color:${x.color}">What it does</div><div style="color:${x.dk}">${x.what}</div></div><div style="margin-bottom:8px"><div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;color:${x.color}">Best for · weakness</div><div style="color:${x.dk}"><strong>Use:</strong> ${x.good}<br><strong>Watch:</strong> ${x.weak}</div></div><div style="margin-top:10px;background:var(--bg);border-radius:8px;padding:11px;font-size:12px">${x.ex.map(e=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;line-height:1.45"><span style="font-family:var(--mono);font-size:10px;color:var(--tt);min-width:64px;flex-shrink:0">${e.label}</span><span style="font-family:var(--mono);font-size:11.5px;flex:1;color:var(--tp)">${e.txt}</span>${e.v?`<span style="font-family:var(--mono);font-size:10px;font-weight:600;padding:1px 7px;border-radius:5px;flex-shrink:0;margin-top:1px;${e.v==='pass'?'background:#E1F5EE;color:#0F6E56':'background:#FAECE7;color:#993C1D'}">${e.v==='pass'?'PASS':'FAIL'}</span>`:''}</div>${e.note?`<div style="font-size:10.5px;color:${e.v==='fail'?'#993C1D':'#0F6E56'};padding-left:72px;margin-top:-2px;margin-bottom:3px">↳ ${e.note}</div>`:''}`).join("")}</div>`;
+  }
+  document.getElementById("ev-graders").addEventListener("click",e=>{const el=e.target.closest("[data-id]");if(!el)return;g=el.dataset.id;renderGraders();});
+  const CASES=[{name:"classify ticket intent",grader:"exact",pass:true},{name:"issue refund for damaged item",grader:"tool",pass:true},{name:"summarize the complaint",grader:"judge",pass:true},{name:"extract invoice total → JSON",grader:"exact",pass:true},{name:"answer return-policy question",grader:"judge",pass:true},{name:"route over-$500 to approval",grader:"tool",pass:true},{name:"refund currency formatting",grader:"exact",pass:false},{name:"handle ambiguous request",grader:"judge",pass:true}];
+  function renderSuite(){
+    const gMap={exact:"#185FA5",tool:"#854F0B",judge:"#0F6E56"};
+    document.getElementById("ev-cases").innerHTML=CASES.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 11px;border-radius:7px;margin-bottom:5px;font-size:12px;background:var(--bg2)"><span style="width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;${c.pass?'background:#0F6E56;color:white':'background:#993C1D;color:white'}">${c.pass?'✓':'✗'}</span><span style="flex:1">${c.name}</span><span style="font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:4px;background:var(--bg3);color:${gMap[c.grader]}">${c.grader==='exact'?'exact match':c.grader==='tool'?'tool-call':'LLM-judge'}</span></div>`).join("");
+    const passes=CASES.filter(c=>c.pass).length,rate=Math.round(passes/CASES.length*100);
+    const fill=document.getElementById("ev-rate-fill");fill.style.width=rate+"%";fill.style.background=rate>=95?"#0F6E56":rate>=80?"#854F0B":"#993C1D";
+    document.getElementById("ev-rate-val").textContent=rate+"%";document.getElementById("ev-rate-val").style.color=rate>=95?"#0F6E56":rate>=80?"#854F0B":"#993C1D";
+    document.getElementById("ev-suite-note").innerHTML=`<strong>${passes} of ${CASES.length} pass → ${rate}%.</strong> Each case uses the grader that fits its output. The pass rate is the single number that says 'is the agent good?' <strong>And the suite is alive:</strong> every production failure (via observability) becomes a NEW golden case — so you never regress on the same bug twice. Today's incident is tomorrow's test.`;
+  }
+  function setMode(m){root.querySelectorAll("#ev-seg .segbtn").forEach(b=>{const on=b.dataset.m===m;b.classList.toggle("on",on);b.style.background=on?"#EEEDFE":"";b.style.borderColor=on?"#534AB7":"";b.style.color=on?"#3C3489":"";});document.getElementById("ev-grade").classList.toggle("on",m==="grade");document.getElementById("ev-suite").classList.toggle("on",m==="suite");if(m==="suite")renderSuite();}
+  root.querySelectorAll("#ev-seg .segbtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  setMode("grade");renderGraders();
+})();
+
+/* 04 GATE */
+(function(){
+  const root=document.getElementById('dg-root');
+  const STAGES=["commit","run eval suite","compute pass rate","GATE","deploy?"];
+  const CHANGES=[
+    {name:"Add grounding instruction to prompt",ic:"prompt +",rate:97,verdict:"deploy",note:"<b>97% ≥ 95% → DEPLOY.</b> Every eval case still passes. A verified improvement reaches users with confidence, not hope. Evals turned 'I think this is better' into 'the number says so.'"},
+    {name:"Swap to a cheaper model to cut cost",ic:"model →",rate:92,verdict:"block",note:"<b>92% < 95% → BLOCKED.</b> The cheaper model (Lesson 6) dropped quality below the bar — the gate caught the tradeoff BEFORE users felt it. Without it, you'd ship a silent 5% regression to save a few cents. Now you decide deliberately."},
+    {name:"Refactor the refund calculation logic",ic:"refactor",rate:88,verdict:"block",note:"<b>88% < 95% → BLOCKED.</b> The refactor broke refund math — the earlier bug. But this time it NEVER REACHES PRODUCTION: the eval suite (now with a refund regression case) catches it in CI. A past incident became a wall the same bug can't pass twice."},
+  ];
+  let sel=0;
+  function renderChanges(){document.getElementById("dg-changes").innerHTML=CHANGES.map((c,i)=>`<div data-i="${i}" style="padding:9px 12px;border-radius:8px;border:1px solid ${i===sel?'#534AB7':'var(--bs)'};background:${i===sel?'#EEEDFE':'var(--bg2)'};cursor:pointer;font-size:12.5px;color:var(--tp);display:flex;align-items:center;gap:9px;${i===sel?'font-weight:500':''}"><span style="font-family:var(--mono);font-size:11px;color:var(--tt)">${c.ic}</span>${c.name}</div>`).join("");}
+  function runGate(){
+    const c=CHANGES[sel];const lit=c.verdict==="deploy"?5:4;
+    document.getElementById("dg-stages").innerHTML=STAGES.map((s,i)=>{
+      let on=i<lit||(i===4&&c.verdict==="deploy");let col,bg;
+      if(i>=3){col=c.verdict==="deploy"?"#0F6E56":"#993C1D";bg=c.verdict==="deploy"?"#E1F5EE":"#FAECE7";}else{col="#534AB7";bg="#EEEDFE";}
+      const html=`<div style="flex:1;text-align:center;padding:7px 4px;border-radius:7px;font-size:10.5px;line-height:1.3;${on?`background:${bg};color:${col};font-weight:500`:'background:var(--bg2);color:var(--tt)'}">${i===4&&c.verdict==='block'?'❌ blocked':i===4?'✓ deploy':s}</div>`;
+      return i<STAGES.length-1?html+`<span style="color:var(--tt);font-size:11px">→</span>`:html;
+    }).join("");
+    const fill=document.getElementById("dg-ratefill");fill.style.width=c.rate+"%";fill.style.background=c.rate>=95?"#0F6E56":"#993C1D";
+    document.getElementById("dg-ratenum").textContent=c.rate+"%";document.getElementById("dg-ratenum").style.color=c.rate>=95?"#0F6E56":"#993C1D";
+    const v=document.getElementById("dg-verdict");v.style.display="block";
+    v.style.cssText="display:block;margin-top:14px;padding:13px 15px;border-radius:8px;font-size:13px;line-height:1.6;font-weight:500;text-align:center;"+(c.verdict==="deploy"?"background:#E1F5EE;color:#085041;border:1px solid #0F6E56":"background:#FAECE7;color:#712B13;border:1px solid #993C1D");
+    v.innerHTML=c.verdict==="deploy"?"✓ Pass rate clears the threshold → DEPLOY proceeds":"❌ Pass rate below threshold → DEPLOY BLOCKED, change rejected";
+    document.getElementById("dg-gate-note").innerHTML=c.note;
+  }
+  document.getElementById("dg-changes").addEventListener("click",e=>{const el=e.target.closest("[data-i]");if(!el)return;sel=+el.dataset.i;renderChanges();runGate();});
+  const FLY=[
+    {id:0,label:"Deploy",sub:"ship the change",color:"#534AB7",bg:"#EEEDFE",ang:-90,note:"<b>Deploy.</b> A change that cleared the eval gate goes live. Because it passed the suite, you ship with confidence, not 'deploy and pray.'"},
+    {id:1,label:"Observe",sub:"traces · logs · metrics",color:"#185FA5",bg:"#E6F1FB",ang:-18,note:"<b>Observe.</b> In production, the three pillars watch every run. No matter how good your evals, reality surfaces cases you didn't anticipate."},
+    {id:2,label:"Catch a failure",sub:"a real bug surfaces",color:"#993C1D",bg:"#FAECE7",ang:54,note:"<b>Catch a failure.</b> A metric spikes; you trace it to root cause. Observability found what your eval suite missed. Every system has these — the question is whether you SEE them."},
+    {id:3,label:"Add a golden case",sub:"incident → test",color:"#854F0B",bg:"#FAEEDA",ang:126,note:"<b>Add a golden case.</b> The failure becomes a permanent eval case — the hinge of the loop. Observability (reactive) feeds evaluation (proactive). Today's incident becomes tomorrow's regression test."},
+    {id:4,label:"Improve + gate",sub:"fix, eval validates",color:"#0F6E56",bg:"#E1F5EE",ang:198,note:"<b>Improve + gate.</b> You fix the bug; the eval suite (now with the new case) validates the fix clears the threshold. The gate green-lights it — and the loop returns to Deploy, measurably better than last lap."},
+  ];
+  let flySel=0;
+  function drawFly(){
+    const cx=250,cy=150,r=105;
+    let s=`<defs><marker id="dgF" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#B4B2A9"/></marker></defs>`;
+    for(let i=0;i<FLY.length;i++){const a1=FLY[i].ang*Math.PI/180,a2=FLY[(i+1)%FLY.length].ang*Math.PI/180,r2=r;const x1=cx+Math.cos(a1+0.42)*r2,y1=cy+Math.sin(a1+0.42)*r2,x2=cx+Math.cos(a2-0.42)*r2,y2=cy+Math.sin(a2-0.42)*r2;s+=`<path d="M ${x1} ${y1} A ${r2} ${r2} 0 0 1 ${x2} ${y2}" fill="none" stroke="#B4B2A9" stroke-width="1.5" marker-end="url(#dgF)"/>`;}
+    s+=`<text x="${cx}" y="${cy-6}" text-anchor="middle" style="font-size:12px;font-weight:600;fill:#534AB7">continuous</text><text x="${cx}" y="${cy+10}" text-anchor="middle" style="font-size:12px;font-weight:600;fill:#534AB7">improvement</text>`;
+    FLY.forEach(f=>{const x=cx+Math.cos(f.ang*Math.PI/180)*r,y=cy+Math.sin(f.ang*Math.PI/180)*r,on=f.id===flySel;s+=`<circle cx="${x}" cy="${y}" r="${on?13:10}" fill="${f.bg}" stroke="${f.color}" stroke-width="${on?2.5:1.5}" style="cursor:pointer" class="dg-fly-node" data-id="${f.id}"/><text x="${x}" y="${y+1}" text-anchor="middle" style="font-size:10px;font-weight:600;fill:${f.color};pointer-events:none">${f.id+1}</text>`;const lx=cx+Math.cos(f.ang*Math.PI/180)*(r+50),ly=cy+Math.sin(f.ang*Math.PI/180)*(r+38);s+=`<text x="${lx}" y="${ly}" text-anchor="middle" style="font-size:11px;font-weight:${on?600:500};fill:${on?f.color:'var(--ts)'};pointer-events:none">${f.label}</text><text x="${lx}" y="${ly+12}" text-anchor="middle" style="font-size:8.5px;fill:var(--tt);pointer-events:none">${f.sub}</text>`;});
+    document.getElementById("dg-fly-svg").innerHTML=s;
+    document.querySelectorAll(".dg-fly-node").forEach(el=>el.addEventListener("click",()=>{flySel=+el.dataset.id;drawFly();flyDetail();}));
+  }
+  function flyDetail(){const f=FLY[flySel];const d=document.getElementById("dg-fly-detail");d.style.background=f.bg;d.style.borderLeft=`3px solid ${f.color}`;d.style.color=f.color;d.innerHTML=f.note;}
+  function setMode(m){root.querySelectorAll("#dg-seg .segbtn").forEach(b=>{const on=b.dataset.m===m;b.classList.toggle("on",on);b.style.background=on?"#EEEDFE":"";b.style.borderColor=on?"#534AB7":"";b.style.color=on?"#3C3489":"";});document.getElementById("dg-gate").classList.toggle("on",m==="gate");document.getElementById("dg-flywheel").classList.toggle("on",m==="flywheel");if(m==="flywheel"){drawFly();flyDetail();}}
+  root.querySelectorAll("#dg-seg .segbtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  setMode("gate");renderChanges();runGate();
+})();
+</script>
+</body>
+</html>

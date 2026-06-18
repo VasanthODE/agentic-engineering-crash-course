@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3 · Memory Architecture</title>
+<style>
+  :root{
+    --bg:#FBFAF7; --bg2:#F2F0E9; --bg3:#E9E6DC;
+    --bt:#E7E4DA; --bs:#D5D2C8;
+    --tp:#1b1a18; --ts:#55534d; --tt:#8d8a82;
+    --p:#534AB7; --pl:#7F77DD; --pbg:#EEEDFE; --pink:#3C3489;
+    --t:#0F6E56; --tl:#1D9E75; --tbg:#E1F5EE; --tdk:#085041;
+    --a:#854F0B; --al:#EF9F27; --abg:#FAEEDA; --adk:#633806;
+    --c:#993C1D; --cl:#D85A30; --cbg:#FAECE7; --cdk:#712B13;
+    --b:#185FA5; --bl:#378ADD; --bbg:#E6F1FB; --bdk:#0C447C;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--tp);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--pbg);color:var(--pink)}
+  .shell{max-width:1080px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:240px 1fr;gap:36px}
+  @media(max-width:880px){.shell{grid-template-columns:1fr;gap:0}.spine{display:none}}
+
+  .hero{grid-column:1/-1;padding:5rem 0 2.5rem;border-bottom:1px solid var(--bt)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--pl);margin-bottom:1.2rem}
+  .hero h1{font-size:clamp(2.4rem,5.5vw,3.8rem);line-height:1.02;letter-spacing:-.03em;font-weight:680;margin:0 0 1.1rem;max-width:15ch}
+  .hero h1 em{font-style:normal;color:var(--p)}
+  .hero p{font-size:1.12rem;color:var(--ts);max-width:58ch;margin:0}
+  .hero .meta{margin-top:2rem;display:flex;gap:28px;flex-wrap:wrap;font-family:var(--mono);font-size:12.5px;color:var(--tt)}
+  .hero .meta b{color:var(--tp);font-weight:600}
+
+  .spine{position:sticky;top:0;align-self:start;height:100vh;padding-top:3rem;overflow:hidden}
+  .spine-cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tt);margin:0 0 16px 4px}
+  .spine-inner{position:relative;padding-left:26px}
+  .spine-rail{position:absolute;left:7px;top:8px;bottom:30px;width:2px;background:linear-gradient(var(--pl),var(--tl),var(--al),var(--bl));border-radius:2px;opacity:.4}
+  .spine a{display:block;position:relative;padding:8px 0;text-decoration:none;line-height:1.25;transition:all .2s}
+  .spine a .nm{font-size:13px;color:var(--ts)}
+  .spine a .scale{font-family:var(--mono);font-size:10px;color:var(--tt);display:block;margin-top:1px}
+  .spine a::before{content:"";position:absolute;left:-26px;top:11px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:2px solid var(--bs);transition:all .25s}
+  .spine a:hover .nm{color:var(--tp)}
+  .spine a.on .nm{color:var(--tp);font-weight:600}
+  .spine a.on::before{background:var(--p);border-color:var(--p);box-shadow:0 0 0 4px var(--pbg)}
+
+  main{padding-top:2rem;padding-bottom:6rem;min-width:0}
+  section{padding:2.6rem 0;border-bottom:1px solid var(--bt);scroll-margin-top:20px}
+  section:last-child{border-bottom:none}
+  .sec-eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pl);margin-bottom:.7rem;display:flex;align-items:center;gap:9px}
+  .sec-eyebrow .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--pbg);color:var(--pink);font-size:11px;font-weight:600}
+  h2{font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.02em;line-height:1.1;font-weight:660;margin:0 0 .9rem}
+  .lead{font-size:1.05rem;color:var(--ts);max-width:62ch;margin:0 0 1.5rem}
+  .lead strong{color:var(--tp);font-weight:620}
+  .subhead{font-size:1.05rem;font-weight:600;color:var(--tp);margin:2rem 0 .6rem}
+  .takeaway{margin-top:1.4rem;padding:13px 16px;border-radius:10px;font-size:13.5px;line-height:1.65;background:var(--pbg);color:var(--pink);border-left:3px solid var(--p)}
+  .takeaway b{font-weight:650}
+  p.body{font-size:1rem;color:var(--ts);max-width:62ch}
+  p.body strong{color:var(--tp);font-weight:600}
+
+  .hint{font-size:13px;color:var(--ts);margin-bottom:10px}
+  .label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--tt);margin:0 0 6px;font-weight:600}
+  .card{background:var(--bg);border:1px solid var(--bt);border-radius:12px;padding:14px}
+  .mono{font-family:var(--mono)}
+  svg{display:block;max-width:100%}
+  .btn{display:inline-block;padding:7px 16px;font-size:13px;border:1px solid var(--p);border-radius:8px;cursor:pointer;background:var(--pbg);color:var(--pink);font-weight:600;margin-top:4px;user-select:none}
+  .btn:hover{filter:brightness(.97)}
+  .seg{display:flex;gap:6px;margin-bottom:14px}
+  .segbtn{flex:1;padding:8px 10px;font-size:13px;text-align:center;border:1px solid var(--bs);border-radius:8px;cursor:pointer;background:var(--bg2);color:var(--ts);transition:all .15s;user-select:none}
+  .segbtn.on{font-weight:600}
+  .chip{display:inline-block;padding:6px 13px;font-size:13px;border:1px solid var(--bs);border-radius:20px;cursor:pointer;background:var(--bg2);color:var(--ts);margin:3px 4px 0 0;transition:all .15s;user-select:none}
+  .chip:hover{background:var(--bg3)}
+  .read{margin-top:14px;padding:12px 15px;border-radius:8px;font-size:13px;line-height:1.65}
+  .read.p{background:var(--pbg);color:var(--pink);border-left:3px solid var(--p)}
+  .read.t{background:var(--tbg);color:var(--tdk);border-left:3px solid var(--t)}
+  .read.a{background:var(--abg);color:var(--adk);border-left:3px solid var(--a)}
+  .read.c{background:var(--cbg);color:var(--cdk);border-left:3px solid var(--c)}
+  .read.b{background:var(--bbg);color:var(--bdk);border-left:3px solid var(--b)}
+  .panel{display:none}.panel.on{display:block}
+  .sliderrow{display:flex;align-items:center;gap:12px;margin:10px 0}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;background:var(--bg3);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--p);cursor:pointer;border:2px solid var(--bg)}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--p);cursor:pointer;border:2px solid var(--bg)}
+  .statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+  .stat{background:var(--bg2);border-radius:8px;padding:10px;text-align:center}
+  .stat .sl{font-size:11px;color:var(--tt);margin-bottom:3px}
+  .stat .sv{font-size:18px;font-weight:600}
+
+  .footer{grid-column:1/-1;padding:3rem 0 4rem;text-align:center;color:var(--tt);font-size:13px;font-family:var(--mono)}
+  .footer .chain{color:var(--ts);font-family:var(--sans);font-size:14px;line-height:1.9;max-width:64ch;margin:0 auto 1.5rem}
+  .footer .chain b{color:var(--p);font-weight:600}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="hero">
+    <div class="eyebrow">AI Agent Engineering · Lesson 3</div>
+    <h1>Memory <em>architecture</em></h1>
+    <p>The model is stateless — it forgets everything between calls. Yet real agents must remember: a long conversation, a knowledge base, a user across months. Memory architecture is deciding what to keep, where, and how to put it back in the window at the right moment.</p>
+    <div class="meta">
+      <span><b>4</b> memory types</span>
+      <span><b>7</b> interactive demos</span>
+      <span>read order: <b>top to bottom</b></span>
+    </div>
+  </header>
+
+  <nav class="spine">
+    <div class="spine-cap">memory across time</div>
+    <div class="spine-inner">
+      <div class="spine-rail"></div>
+      <a href="#map" data-sec="map"><span class="nm">The four types</span><span class="scale">the whole map</span></a>
+      <a href="#session" data-sec="session"><span class="nm">Session memory</span><span class="scale">seconds → hours</span></a>
+      <a href="#rag" data-sec="rag"><span class="nm">Vector retrieval (RAG)</span><span class="scale">static knowledge</span></a>
+      <a href="#episodic" data-sec="episodic"><span class="nm">Episodic memory</span><span class="scale">days → months</span></a>
+      <a href="#cache" data-sec="cache"><span class="nm">Prompt caching</span><span class="scale">minutes · computation</span></a>
+    </div>
+  </nav>
+
+  <main>
+
+  <!-- 00 MAP -->
+  <section id="map">
+    <div class="sec-eyebrow"><span class="n">00</span> The map</div>
+    <h2>Four kinds of memory, four timescales</h2>
+    <p class="lead">A stateless model "remembers" four different things in four different ways. These aren't flavors of one idea — they solve genuinely different problems on different clocks. Click each to see what it's for.</p>
+    <div class="hint">Click each memory type:</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px" id="mm-grid"></div>
+    <div id="mm-detail" style="margin-top:14px;border-radius:12px;padding:15px 17px;font-size:13px;line-height:1.7"></div>
+    <div class="takeaway"><b>The model never remembers anything.</b> Every type is the same move — put the right information back into the context window at the right moment. Memory architecture is context engineering (Lesson 2) with a clock attached.</div>
+  </section>
+
+  <!-- 01 SESSION -->
+  <section id="session">
+    <div class="sec-eyebrow"><span class="n">01</span> Seconds → hours</div>
+    <h2>Session memory</h2>
+    <p class="lead">The simplest type — and the one that exposes the core tension every other technique fights: a conversation that grows forever, poured into a window that's finite and quadratically expensive.</p>
+
+    <p class="subhead">The "memory" is a list you resend</p>
+    <p class="body">Step through a conversation and watch the array you send the model grow every turn. The model forgot turn 1 the instant it replied — it only "remembers" because you re-feed the whole transcript.</p>
+    <div style="margin-top:14px">
+      <div class="hint">Each turn, the ENTIRE conversation so far is resent to the stateless model:</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <span class="btn" id="sm-next" style="margin-top:0">▶ Next turn</span>
+        <span class="chip" id="sm-reset" style="margin-top:0">Reset</span>
+        <span style="font-size:13px;color:var(--ts)" id="sm-turn">Turn 0 of 6</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" id="sm-cols">
+        <div>
+          <div class="label">What you send the model THIS call</div>
+          <div class="card mono" id="sm-array" style="min-height:230px;font-size:11.5px"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11.5px;color:var(--tt)">
+            <span>window</span>
+            <div style="flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden"><div id="sm-fill" style="height:100%;border-radius:3px;background:var(--p);width:0%;transition:width .4s,background .4s"></div></div>
+            <span id="sm-tok">0 tok</span>
+          </div>
+        </div>
+        <div>
+          <div class="label">What's happening</div>
+          <div class="read p" id="sm-note" style="margin-top:0"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="subhead">When it overflows: drop or compress</p>
+    <p class="body">The array can't grow forever, and every token is re-billed each call (O(n²)). So the real question is what to drop. Two strategies, different tradeoffs:</p>
+    <div style="margin-top:14px">
+      <div class="seg" id="ss-seg">
+        <div class="segbtn on" data-m="window">Sliding window</div>
+        <div class="segbtn" data-m="summary">Summarisation</div>
+      </div>
+      <div class="label">A 10-turn conversation that's hit the limit — what gets sent now?</div>
+      <div class="card mono" id="ss-convo" style="font-size:11px"></div>
+      <div class="read" id="ss-note"></div>
+    </div>
+    <div class="takeaway"><b>Often you combine them:</b> keep the last N turns verbatim AND maintain a rolling summary of everything older. Recent precision plus long-range gist. But note — both die when the session ends. Surviving that boundary is the next type's job.</div>
+  </section>
+
+  <!-- 02 RAG -->
+  <section id="rag">
+    <div class="sec-eyebrow"><span class="n">02</span> Static knowledge</div>
+    <h2>Vector retrieval (RAG)</h2>
+    <p class="lead">The highest-leverage memory architecture you'll build. You have far more knowledge than fits in a window — so for each question, retrieve only the handful of chunks you actually need, by <strong>meaning</strong>.</p>
+
+    <p class="subhead">Retrieval by meaning, not keywords</p>
+    <p class="body">Pick a question and watch which chunks get retrieved — even with zero shared keywords. This runs on the embeddings from Lesson 1.</p>
+    <div style="margin-top:14px">
+      <div class="hint">A knowledge base of 8 chunks in meaning-space. Pick a question:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px" id="rg-qrow"></div>
+      <svg viewBox="0 0 680 300" role="img" aria-label="Knowledge base chunks in semantic space">
+        <line x1="40" y1="270" x2="640" y2="270" stroke="var(--bt)" stroke-width="0.5"/>
+        <line x1="40" y1="30" x2="40" y2="270" stroke="var(--bt)" stroke-width="0.5"/>
+        <g id="rg-dots"></g><g id="rg-query"></g>
+      </svg>
+      <div class="read t" id="rg-note"></div>
+    </div>
+
+    <p class="subhead">The four-stage pipeline</p>
+    <p class="body">Two phases: index time (done once) and query time (every question). Each stage hides a decision that makes RAG work or hallucinate.</p>
+    <div style="margin-top:14px">
+      <div class="hint">Click each stage:</div>
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap" id="rp-stages"></div>
+      <div id="rp-detail" style="border-radius:12px;padding:16px 18px;font-size:13px;line-height:1.7"></div>
+    </div>
+    <div class="takeaway"><b>Embed once, retrieve always, ground every answer.</b> Training knowledge becomes the reasoning engine; your retrieved chunks become the facts. That separation is what makes agents useful for real businesses. But RAG remembers knowledge, not a specific user — that's next.</div>
+  </section>
+
+  <!-- 03 EPISODIC -->
+  <section id="episodic">
+    <div class="sec-eyebrow"><span class="n">03</span> Days → months</div>
+    <h2>Episodic memory</h2>
+    <p class="lead">Session memory dies with the session. RAG remembers facts for everyone. Neither remembers <strong>you, specifically, across time</strong>. Episodic memory recognizes a returning user at the door.</p>
+    <div style="margin-top:14px">
+      <div class="hint">A write→store→read loop across two sessions, three weeks apart. Step through it:</div>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;margin-bottom:14px" id="ep-timeline">
+        <div class="card" id="ep-sessA-wrap">
+          <div style="font-size:12px;font-weight:600;color:var(--p);margin-bottom:4px">Session A</div>
+          <div style="font-size:11px;color:var(--tt);margin-bottom:10px;font-family:var(--mono)">3 weeks ago</div>
+          <div id="ep-sessA"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 10px">
+          <div style="color:var(--a);font-size:16px;margin:6px 0" id="ep-arr1">↑ write</div>
+          <div style="text-align:center">
+            <div style="width:54px;height:54px;border-radius:14px;background:var(--abg);border:1.5px solid var(--a);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--a)" id="ep-store"><i class="ti ti-user-heart" aria-hidden="true"></i></div>
+            <div style="font-size:10.5px;color:var(--adk);text-align:center;margin-top:5px;font-weight:600;line-height:1.3">episodic<br>store</div>
+          </div>
+          <div style="color:var(--a);font-size:16px;margin:6px 0" id="ep-arr2">↓ read</div>
+        </div>
+        <div class="card">
+          <div style="font-size:12px;font-weight:600;color:var(--t);margin-bottom:4px">Session B</div>
+          <div style="font-size:11px;color:var(--tt);margin-bottom:10px;font-family:var(--mono)">today — fresh session</div>
+          <div id="ep-sessB"></div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-bottom:8px"><span class="btn" id="ep-step" style="background:var(--abg);border-color:var(--a);color:var(--adk)">▶ Next step</span></div>
+      <div class="read a" id="ep-note"></div>
+    </div>
+    <div class="takeaway"><b>Extraction is the hard part — deciding what's durable.</b> Facts also change, so real systems must update and reconcile, not just append (what Mem0 handles). And this is the one type that persists personal data across time — treat the store as sensitive.</div>
+  </section>
+
+  <!-- 04 CACHING -->
+  <section id="cache">
+    <div class="sec-eyebrow"><span class="n">04</span> Minutes · computation</div>
+    <h2>Prompt caching</h2>
+    <p class="lead">Different in kind from the others — it remembers <strong>computation</strong>, not content. Your stable prefix is identical every call, yet the model re-processes it from scratch each time. Caching makes you pay that quadratic cost once.</p>
+    <div style="margin-top:14px">
+      <div class="seg" id="pc-seg">
+        <div class="segbtn on" data-m="what">What gets cached</div>
+        <div class="segbtn" data-m="cost">The cost math</div>
+      </div>
+      <div class="panel on" id="pc-what">
+        <div class="hint">A prompt splits into a <strong style="color:var(--b)">stable prefix</strong> (same every call) and a <strong style="color:var(--c)">fresh suffix</strong> (changes each call):</div>
+        <div class="card" id="pc-prompt"></div>
+        <div class="read b">The order matters: <strong>stable content must come first</strong>, because caching works on a prefix. On the next call, if that prefix is byte-for-byte identical, the model skips re-processing and starts fresh only at the suffix. Anything that changes (the question, retrieved chunks) goes <em>after</em> the cached prefix — one changed token at the start invalidates the whole cache.</div>
+      </div>
+      <div class="panel" id="pc-cost">
+        <div class="hint">Writing the cache costs slightly MORE; reading it costs far LESS. It only pays off with reuse. Drag the reuse count:</div>
+        <div class="sliderrow">
+          <span style="font-size:13px;color:var(--ts);min-width:90px">Reuse calls</span>
+          <input type="range" min="1" max="50" value="1" step="1" id="pc-calls" style="flex:1">
+          <span style="font-size:14px;font-weight:600;min-width:30px" id="pc-calls-lbl">1</span>
+        </div>
+        <div class="statgrid">
+          <div class="stat"><div class="sl">Without caching</div><div class="sv" id="pc-nocache" style="color:var(--c)">—</div></div>
+          <div class="stat"><div class="sl">With caching</div><div class="sv" id="pc-cache" style="color:var(--t)">—</div></div>
+          <div class="stat"><div class="sl">Saved</div><div class="sv" id="pc-saved" style="color:var(--b)">—</div></div>
+        </div>
+        <div class="read b" id="pc-cost-note"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Profitable from the second call onward.</b> It ties straight to O(n²): processing a 5,000-token prefix is quadratic in attention, and caching lets you pay that once instead of every call. Caches expire in minutes — so it suits high-frequency repeated-prefix workloads.</div>
+  </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="chain">
+      The architecture: a stateless model persists information four ways. <b>Session memory</b> carries this conversation (resend, slide or summarise) · <b>RAG</b> carries knowledge (embed once, retrieve by meaning, ground) · <b>episodic memory</b> carries the user (extract, store by identity, reload) · <b>prompt caching</b> carries computation (reuse the stable prefix). The model never remembers — you reconstruct the right context at the right time, on the right clock.
+    </div>
+    Lesson 3 · Memory Architecture — interactive study companion
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const links=[...document.querySelectorAll('.spine a')];
+  const map={};links.forEach(l=>map[l.dataset.sec]=l);
+  const obs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('on'));if(map[e.target.id])map[e.target.id].classList.add('on');}});},{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('main section').forEach(s=>obs.observe(s));
+})();
+
+/* 00 MAP */
+(function(){
+  const MEM=[
+    {id:"session",icon:"ti-message-2",name:"Session memory",color:"#534AB7",bg:"#EEEDFE",dk:"#3C3489",when:"Within one conversation",span:"seconds → hours",
+     solves:"How does the agent remember what was said three turns ago in THIS conversation?",
+     how:"You keep the running list of messages and resend it every call. 'Memory' here is just you re-feeding the transcript. The challenge: the transcript grows, the window is finite — so you slide a window or summarise.",
+     ex:"User says 'my name is Priya' on turn 1. On turn 8 the agent still calls her Priya — because turns 1-7 are in the array you resent."},
+    {id:"vector",icon:"ti-database",name:"Vector retrieval (RAG)",color:"#0F6E56",bg:"#E1F5EE",dk:"#085041",when:"Across a knowledge base",span:"static facts",
+     solves:"How does the agent answer from 10,000 documents that could never fit in the window?",
+     how:"Store documents as embeddings (Lesson 1) in a vector database. At query time retrieve only the most relevant chunks and inject those. You never load everything — you fetch what's needed.",
+     ex:"Customer asks about returns. You embed the question, find the 3 closest policy chunks out of 10,000, and put only those in the window."},
+    {id:"episodic",icon:"ti-user-heart",name:"Episodic memory",color:"#854F0B",bg:"#FAEEDA",dk:"#633806",when:"Across many sessions",span:"days → months",
+     solves:"How does the agent remember a user's preferences from last week, in a brand-new session?",
+     how:"Extract durable facts about the user ('prefers email', 'allergic to shellfish') and store them keyed to that user. Next session, load their facts into context before they even speak.",
+     ex:"Three weeks ago a user said they're vegetarian. Today, in a fresh session, the agent already knows — because that fact was saved and reloaded."},
+    {id:"cache",icon:"ti-bolt",name:"Prompt caching",color:"#185FA5",bg:"#E6F1FB",dk:"#0C447C",when:"Across repeated calls",span:"minutes",
+     solves:"How do you avoid re-paying to process the same huge system prompt on every call?",
+     how:"Not memory of content — memory of COMPUTATION. A stable prefix gets cached after the first call, so repeat calls skip re-processing it. Cheaper and faster, same input. An optimisation, not a capability.",
+     ex:"Your 5,000-token system prompt is identical every call. Cache it once, and the next calls reuse the computed result instead of paying for it again."},
+  ];
+  let active="session";
+  function grid(){document.getElementById('mm-grid').innerHTML=MEM.map(m=>`<div data-id="${m.id}" style="border-radius:12px;padding:14px 15px;cursor:pointer;border:${m.id===active?'2px':'1px'} solid ${m.id===active?m.color:'var(--bt)'};background:var(--bg)"><div style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:9px;background:${m.bg};color:${m.color}"><i class="ti ${m.icon}" aria-hidden="true"></i></div><div style="font-size:14px;font-weight:600;color:var(--tp);margin-bottom:3px">${m.name}</div><div style="font-size:12px;color:var(--ts);line-height:1.45">${m.when}</div><div style="font-family:var(--mono);font-size:10.5px;margin-top:8px;padding:3px 7px;border-radius:5px;display:inline-block;background:${m.bg};color:${m.dk}">${m.span}</div></div>`).join('');}
+  function detail(){const m=MEM.find(x=>x.id===active);const d=document.getElementById('mm-detail');d.style.background=m.bg;d.innerHTML=`<div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;color:${m.color}">The problem it solves</div><div style="color:${m.dk};margin-bottom:12px">${m.solves}</div><div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;color:${m.color}">How it works</div><div style="color:${m.dk};margin-bottom:12px">${m.how}</div><div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;color:${m.color}">Concretely</div><div style="color:${m.dk}">${m.ex}</div>`;}
+  document.getElementById('mm-grid').addEventListener('click',e=>{const el=e.target.closest('[data-id]');if(!el)return;active=el.dataset.id;grid();detail();});
+  grid();detail();
+})();
+
+/* 01a SESSION RESEND */
+(function(){
+  const TURNS=[
+    {user:"Hi, my name is Priya.",asst:"Hello Priya! How can I help you today?",note:"Turn 1. The array has one user message. The model replies. You now hold both messages — the model itself has already forgotten everything."},
+    {user:"I'm looking for wireless headphones under ₹3000.",asst:"Great — I'd recommend the AcmePro Air at ₹2,999.",note:"Turn 2. You resend turn 1 AND turn 2. The model sees the whole history fresh each call — that's the only reason it has any 'memory'."},
+    {user:"Do they come in black?",asst:"Yes, the AcmePro Air comes in black, white, and navy.",note:"Turn 3. Notice 'they' — the model resolves it to the headphones ONLY because turns 1-2 are in the array. Remove them and 'they' is meaningless."},
+    {user:"What was my name again?",asst:"Your name is Priya!",note:"Turn 4. The model recalls 'Priya' from turn 1 — six messages back. Not because it remembers, but because turn 1 is still in the array you resent."},
+    {user:"Add them to my cart.",asst:"Done — one AcmePro Air in black added to your cart.",note:"Turn 5. 'them' = black AcmePro Air, stitched from turns 2 and 3. The full history is doing the work. The array is now 10 messages."},
+    {user:"And what's the return window?",asst:"You have 30 days from delivery to return them.",note:"Turn 6. Every turn, the payload grows. Coherent so far — but imagine turn 600. The array can't grow forever, and every token is re-billed each call (O(n²)). That's the tension we solve next."},
+  ];
+  let turn=0;const TPM=85;
+  function render(){
+    const arr=document.getElementById('sm-array');let html="";
+    for(let i=0;i<turn;i++){const t=TURNS[i],isNew=i===turn-1;html+=`<div style="padding:6px 9px;border-radius:6px;margin-bottom:5px;line-height:1.4;background:#EEEDFE;color:#3C3489;${isNew?'box-shadow:0 0 0 1.5px #854F0B':''}">user: ${t.user}</div><div style="padding:6px 9px;border-radius:6px;margin-bottom:5px;line-height:1.4;background:#E1F5EE;color:#085041;${isNew?'box-shadow:0 0 0 1.5px #854F0B':''}">assistant: ${t.asst}</div>`;}
+    if(turn===0)html=`<div style="color:var(--tt);text-align:center;padding:60px 10px">empty — no messages yet</div>`;
+    arr.innerHTML=html;arr.scrollTop=arr.scrollHeight;
+    document.getElementById('sm-turn').textContent=`Turn ${turn} of 6`;
+    const tok=turn*2*TPM,pct=Math.min(100,Math.round(tok/1100*100)),fill=document.getElementById('sm-fill');
+    fill.style.width=pct+'%';fill.style.background=pct>75?'#993C1D':pct>50?'#854F0B':'#534AB7';
+    document.getElementById('sm-tok').textContent=tok+' tok';
+    document.getElementById('sm-note').innerHTML=turn>0?TURNS[turn-1].note:'Press "Next turn" to send the first message.';
+    document.getElementById('sm-next').style.opacity=turn>=6?.4:1;
+  }
+  document.getElementById('sm-next').addEventListener('click',()=>{if(turn<6){turn++;render();}});
+  document.getElementById('sm-reset').addEventListener('click',()=>{turn=0;render();});
+  render();
+})();
+
+/* 01b SESSION STRATEGIES */
+(function(){
+  const CONVO=[
+    {u:"My name is Priya, I'm in Mumbai.",a:"Hi Priya!"},{u:"Looking for headphones under ₹3000.",a:"AcmePro Air, ₹2,999."},
+    {u:"Do they come in black?",a:"Yes — black, white, navy."},{u:"What's the battery life?",a:"30 hours per charge."},
+    {u:"Are they good for the gym?",a:"Yes, sweat-resistant (IPX4)."},{u:"Do they have a warranty?",a:"1 year manufacturer warranty."},
+    {u:"Add the black ones to cart.",a:"Added one black AcmePro Air."},{u:"What's the return window?",a:"30 days from delivery."},
+  ];
+  let mode="window";
+  function render(){
+    const c=document.getElementById('ss-convo'),note=document.getElementById('ss-note');
+    if(mode==="window"){
+      let html="";CONVO.forEach((t,i)=>{const kept=i>=5,st=kept?'background:#E1F5EE;color:#085041':'background:var(--bg2);color:var(--tt);opacity:.5;text-decoration:line-through';html+=`<div style="padding:5px 8px;border-radius:5px;margin-bottom:4px;${st}">[T${i+1}] user: ${t.u}</div><div style="padding:5px 8px;border-radius:5px;margin-bottom:4px;${st}">[T${i+1}] asst: ${t.a}</div>`;});
+      c.innerHTML=html;note.className='read c';note.innerHTML=`<span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-right:6px;font-weight:600;background:#FAECE7;color:#993C1D">sliding window</span> Keep only the last N turns; drop the oldest. <strong>Cheap, simple, fast.</strong> But turn 1 — Priya's name and city — fell off. Ask 'what's my name?' now and the model can't answer. <strong>Clean recency, total amnesia about anything older.</strong>`;
+    } else {
+      let html=`<div style="padding:5px 8px;border-radius:5px;margin-bottom:4px;background:#FAEEDA;color:#633806;border:1px dashed #854F0B">[SUMMARY of T1-T5] User is Priya (Mumbai). Wants headphones under ₹3000. Recommended AcmePro Air (₹2,999, black/white/navy, 30h battery, IPX4 gym-ready).</div>`;
+      CONVO.forEach((t,i)=>{if(i<5)return;html+=`<div style="padding:5px 8px;border-radius:5px;margin-bottom:4px;background:#E1F5EE;color:#085041">[T${i+1}] user: ${t.u}</div><div style="padding:5px 8px;border-radius:5px;margin-bottom:4px;background:#E1F5EE;color:#085041">[T${i+1}] asst: ${t.a}</div>`;});
+      c.innerHTML=html;note.className='read t';note.innerHTML=`<span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-right:6px;font-weight:600;background:#E1F5EE;color:#0F6E56">summarisation</span> Compress old turns into a short summary; keep recent turns verbatim. The summary preserves Priya's name, city, and product details in a fraction of the tokens. <strong>Ask 'what's my name?' and it still works.</strong> Costs an extra LLM call, and fine detail can be lost — but the gist survives.`;
+    }
+  }
+  function setMode(m){mode=m;document.querySelectorAll('#ss-seg .segbtn').forEach(b=>{const on=b.dataset.m===m;b.classList.toggle('on',on);b.style.background=on?(m==='window'?'#FAECE7':'#E1F5EE'):'';b.style.borderColor=on?(m==='window'?'#993C1D':'#0F6E56'):'';b.style.color=on?(m==='window'?'#712B13':'#085041'):'';});render();}
+  document.querySelectorAll('#ss-seg .segbtn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+  setMode('window');
+})();
+
+/* 02a RAG RETRIEVAL */
+(function(){
+  const CHUNKS=[
+    {id:"return",txt:"Returns accepted within 30 days of delivery, original packaging.",x:180,y:90},
+    {id:"refund",txt:"Refunds processed in 5-7 business days to original payment.",x:230,y:130},
+    {id:"warranty",txt:"All products carry a 1-year manufacturer warranty on defects.",x:150,y:170},
+    {id:"shipping",txt:"Standard shipping 3-5 days; express 1-2 days for ₹149.",x:480,y:90},
+    {id:"tracking",txt:"Track your order via the link in your confirmation email.",x:530,y:140},
+    {id:"battery",txt:"AcmePro Air delivers 30 hours of battery on a single charge.",x:380,y:230},
+    {id:"colors",txt:"AcmePro Air is available in black, white, and navy.",x:430,y:210},
+    {id:"gym",txt:"AcmePro Air is sweat-resistant (IPX4), suitable for workouts.",x:340,y:200},
+  ];
+  const QUERIES=[
+    {label:"Can I send this back?",qx:205,qy:108,hits:["return","refund","warranty"],note:"The question says 'send this back' — <strong>zero keyword overlap</strong> with 'returns' or 'refunds'. Yet RAG retrieves the right chunks, because in meaning-space 'send back' sits right next to return/refund/warranty. Retrieval by <em>meaning</em>, not words."},
+    {label:"How long until it dies on one charge?",qx:395,qy:222,hits:["battery","gym","colors"],note:"'Dies on one charge' shares no words with 'battery' or '30 hours' — but semantically it's almost on top of the battery chunk. The closest chunk is the bullseye; the next two are nearby product facts."},
+    {label:"When will my package arrive?",qx:505,qy:115,hits:["shipping","tracking","return"],note:"'Package arrive' maps to the shipping/tracking cluster — far from the returns cluster. Same knowledge base, totally different retrieval, driven purely by where the question lands."},
+  ];
+  let active=0;
+  function queries(){document.getElementById('rg-qrow').innerHTML=QUERIES.map((q,i)=>`<span class="chip ${i===active?'on':''}" data-i="${i}" style="${i===active?'background:#E1F5EE;border-color:#0F6E56;color:#085041':''}">${q.label}</span>`).join('');}
+  function dist(ax,ay,bx,by){return Math.hypot(ax-bx,ay-by);}
+  function render(){
+    const q=QUERIES[active];
+    document.getElementById('rg-dots').innerHTML=CHUNKS.map(c=>{const hit=q.hits.includes(c.id),isTop=q.hits[0]===c.id;return `<circle cx="${c.x}" cy="${c.y}" r="${isTop?7:hit?6:4}" fill="${hit?'#0F6E56':'#B4B2A9'}" opacity="${hit?1:.5}"/>`;}).join('');
+    let ql=`<circle cx="${q.qx}" cy="${q.qy}" r="9" fill="none" stroke="#534AB7" stroke-width="2"/><circle cx="${q.qx}" cy="${q.qy}" r="3" fill="#534AB7"/><text x="${q.qx}" y="${q.qy-15}" text-anchor="middle" style="font-size:11px;fill:#534AB7;font-weight:500">your question</text>`;
+    q.hits.forEach((hid,idx)=>{const c=CHUNKS.find(x=>x.id===hid);ql+=`<line x1="${q.qx}" y1="${q.qy}" x2="${c.x}" y2="${c.y}" stroke="#0F6E56" stroke-width="${2-idx*0.5}" opacity="${0.7-idx*0.18}" stroke-dasharray="3 3"/>`;});
+    document.getElementById('rg-query').innerHTML=ql;
+    const scored=q.hits.map(hid=>{const c=CHUNKS.find(x=>x.id===hid),d=dist(q.qx,q.qy,c.x,c.y);return {c,score:Math.max(0.62,1-d/220)};});
+    const ch=scored.map((s,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;font-size:12px"><span style="font-family:var(--mono);font-size:11px;min-width:42px;font-weight:600;color:${i===0?'#0F6E56':'#5DCAA5'}">${s.score.toFixed(2)}</span><div style="flex:1;height:16px;background:var(--bg2);border-radius:5px;overflow:hidden;max-width:180px"><div style="height:100%;border-radius:5px;width:${Math.round(s.score*100)}%;background:${i===0?'#0F6E56':'#5DCAA5'}"></div></div><span style="font-size:12px;color:var(--ts);flex:1">${s.c.txt}</span></div>`).join('');
+    document.getElementById('rg-note').innerHTML=q.note+`<div style="margin-top:6px">${ch}</div><div style="margin-top:8px;font-size:12px;opacity:.85">Only these top chunks get injected — not the whole knowledge base.</div>`;
+  }
+  document.getElementById('rg-qrow').addEventListener('click',e=>{const el=e.target.closest('[data-i]');if(!el)return;active=+el.dataset.i;queries();render();});
+  queries();render();
+})();
+
+/* 02b RAG PIPELINE */
+(function(){
+  const STAGES=[
+    {n:"1",name:"Chunk",phase:"index time",color:"#534AB7",bg:"#EEEDFE",dk:"#3C3489",what:"Split documents into 300-500 token pieces with a small overlap. A 50-page PDF becomes ~200 chunks. You embed and retrieve chunks, never whole documents.",decision:"The single highest-leverage decision in RAG. Too large: a chunk covers three topics and retrieves for none well. Too small: it loses context. 300-500 tokens with ~50 overlap is the workhorse — the overlap stops a key sentence being split across a boundary.",decLabel:"The decision: chunk size"},
+    {n:"2",name:"Embed",phase:"index time",color:"#0F6E56",bg:"#E1F5EE",dk:"#085041",what:"Run every chunk through an embedding model to get its meaning-vector (Lesson 1), store all vectors in a vector DB (Pinecone, Qdrant, pgvector). Built once, reused for every query.",decision:"Both chunks AND questions must be embedded by the SAME model — vectors from different models live in different spaces and aren't comparable. The DB does one thing fast: given a query vector, find the nearest chunk vectors among millions, in milliseconds.",decLabel:"The decision: embedding model"},
+    {n:"3",name:"Retrieve",phase:"query time",color:"#854F0B",bg:"#FAEEDA",dk:"#633806",what:"When a question arrives, embed it with the same model, ask the DB for the top-K nearest chunks (usually 3-5) — the chunks closest in meaning to the question.",decision:"Top-K is a precision/recall dial. K=1 risks missing the answer; K=20 floods context, raises cost (O(n²)), dilutes focus. K=3-5 typical. Set a score threshold too — if even the best chunk is weak, retrieve nothing rather than inject noise.",decLabel:"The decision: top-K and threshold"},
+    {n:"4",name:"Generate",phase:"query time",color:"#185FA5",bg:"#E6F1FB",dk:"#0C447C",what:"Inject the retrieved chunks — wrapped in XML tags (Lesson 2!) — alongside the question, and let the model answer with the instruction 'answer ONLY from the provided context.'",decision:"This is where RAG prevents hallucination — but only if you instruct grounding. Without 'answer only from context,' the model blends retrieved facts with training data and may invent things. XML wrapping also stops a malicious retrieved doc injecting instructions. Lessons 1, 2, and 3 converge here.",decLabel:"The decision: grounding instruction"},
+  ];
+  let active=0;
+  function stages(){document.getElementById('rp-stages').innerHTML=STAGES.map((s,i)=>`<div data-i="${i}" style="flex:1;min-width:120px;padding:9px 11px;border-radius:8px;border:${i===active?'2px':'1px'} solid ${i===active?s.color:'var(--bs)'};cursor:pointer;background:${i===active?s.bg:'var(--bg2)'};text-align:center"><div style="font-family:var(--mono);font-size:11px;color:var(--tt)">stage ${s.n}</div><div style="font-size:12.5px;font-weight:600;color:var(--tp);margin-top:2px">${s.name}</div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;margin-top:3px;color:${s.color}">${s.phase}</div></div>`).join('');}
+  function detail(){const s=STAGES[active],d=document.getElementById('rp-detail');d.style.background=s.bg;d.innerHTML=`<div style="font-size:14px;font-weight:600;margin-bottom:8px;color:${s.color}">Stage ${s.n} · ${s.name} <span style="font-weight:400;font-size:12px;opacity:.75">(${s.phase})</span></div><div style="color:${s.dk}">${s.what}</div><div style="margin-top:12px;padding:10px 13px;border-radius:8px;font-size:12.5px;line-height:1.6;background:rgba(0,0,0,0.04)"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;color:${s.color}">${s.decLabel}</div><div style="color:${s.dk}">${s.decision}</div></div>`;}
+  document.getElementById('rp-stages').addEventListener('click',e=>{const el=e.target.closest('[data-i]');if(!el)return;active=+el.dataset.i;stages();detail();});
+  stages();detail();
+})();
+
+/* 03 EPISODIC */
+(function(){
+  const STEPS=[
+    {note:"Session A, three weeks ago. Priya has a normal conversation. Nothing special yet — just a chat about a dinner order.",sessA:[{c:'u',t:"user: I'm vegetarian, no eggs please."},{c:'a',t:"assistant: Noted — I'll keep it egg-free."}],sessB:[],store:false},
+    {note:"As the session ends, an extraction step runs: a small LLM call reads the transcript and pulls out DURABLE facts. 'Vegetarian, no eggs' is durable. 'Wants pasta tonight' would not be.",sessA:[{c:'u',t:"user: I'm vegetarian, no eggs please."},{c:'a',t:"assistant: Noted — I'll keep it egg-free."},{c:'e',t:"⤷ extracted: {diet: 'vegetarian, no eggs'}"}],sessB:[],store:false},
+    {note:"The extracted fact is written to the episodic store, keyed to Priya's user ID. Session A ends. The conversation is gone — but this durable fact persists.",sessA:[{c:'u',t:"user: I'm vegetarian, no eggs please."},{c:'a',t:"assistant: Noted — I'll keep it egg-free."},{c:'e',t:"⤷ extracted: {diet: 'vegetarian, no eggs'}"}],sessB:[],store:true},
+    {note:"Three weeks later. Brand-new session — empty transcript, no session memory. But BEFORE Priya even speaks, you load her stored facts into the context window.",sessA:[{c:'u',t:"user: I'm vegetarian, no eggs please."},{c:'a',t:"assistant: Noted — I'll keep it egg-free."},{c:'e',t:"⤷ extracted: {diet: 'vegetarian, no eggs'}"}],sessB:[{c:'e',t:"⤷ loaded from store: {diet: 'vegetarian, no eggs'}"}],store:true},
+    {note:"Now Priya asks — and the agent already knows. It recommends an egg-free vegetarian dish without being told again. From her side, the agent simply REMEMBERS her, across three weeks and a session boundary. That's episodic memory.",sessA:[{c:'u',t:"user: I'm vegetarian, no eggs please."},{c:'a',t:"assistant: Noted — I'll keep it egg-free."},{c:'e',t:"⤷ extracted: {diet: 'vegetarian, no eggs'}"}],sessB:[{c:'e',t:"⤷ loaded from store: {diet: 'vegetarian, no eggs'}"},{c:'u',t:"user: What's good for dinner tonight?"},{c:'a',t:"assistant: The paneer tikka bowl — vegetarian and egg-free, just how you like it."}],store:true},
+  ];
+  const STY={u:'background:#EEEDFE;color:#3C3489',a:'background:#E1F5EE;color:#085041',e:'background:#FAEEDA;color:#633806;border:1px dashed #854F0B'};
+  let step=0;
+  function render(){
+    const s=STEPS[step];
+    document.getElementById('ep-sessA').innerHTML=s.sessA.map(m=>`<div style="font-family:var(--mono);font-size:11px;padding:5px 8px;border-radius:5px;margin-bottom:5px;line-height:1.4;${STY[m.c]}">${m.t}</div>`).join('');
+    document.getElementById('ep-sessB').innerHTML=s.sessB.map(m=>`<div style="font-family:var(--mono);font-size:11px;padding:5px 8px;border-radius:5px;margin-bottom:5px;line-height:1.4;${STY[m.c]}">${m.t}</div>`).join('')||`<div style="font-size:11px;color:var(--tt);padding:10px 0;text-align:center">— not started —</div>`;
+    document.getElementById('ep-note').innerHTML=s.note;
+    document.getElementById('ep-store').style.boxShadow=s.store?'0 0 0 4px rgba(133,79,11,0.18)':'none';
+    document.getElementById('ep-arr1').style.opacity=step>=2?1:.3;
+    document.getElementById('ep-arr2').style.opacity=step>=3?1:.3;
+    document.getElementById('ep-step').style.opacity=step>=STEPS.length-1?.4:1;
+  }
+  document.getElementById('ep-step').addEventListener('click',()=>{if(step<STEPS.length-1){step++;render();}});
+  render();
+})();
+
+/* 04 CACHING */
+(function(){
+  function setMode(m){
+    document.querySelectorAll('#pc-seg .segbtn').forEach(b=>{const on=b.dataset.m===m;b.classList.toggle('on',on);b.style.background=on?'#E6F1FB':'';b.style.borderColor=on?'#185FA5':'';b.style.color=on?'#0C447C':'';});
+    document.getElementById('pc-what').classList.toggle('on',m==='what');
+    document.getElementById('pc-cost').classList.toggle('on',m==='cost');
+    if(m==='cost')drawCost();
+  }
+  document.getElementById('pc-prompt').innerHTML=[
+    {tag:'CACHEABLE',cls:'s',t:'System prompt — role, rules, format (~1,800 tok)'},
+    {tag:'CACHEABLE',cls:'s',t:'Few-shot examples (~900 tok)'},
+    {tag:'CACHEABLE',cls:'s',t:'Product catalog reference doc (~2,300 tok)'},
+    {tag:'FRESH',cls:'f',t:'Retrieved RAG chunks for this query (~600 tok)'},
+    {tag:'FRESH',cls:'f',t:'The user\'s current question (~40 tok)'},
+  ].map(b=>{const st=b.cls==='s'?'background:#E6F1FB;color:#0C447C':'background:#FAECE7;color:#712B13';return `<div style="padding:9px 11px;border-radius:7px;margin-bottom:6px;font-size:12px;line-height:1.4;display:flex;align-items:center;gap:10px;${st}"><span style="font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600;flex-shrink:0;${st}">${b.tag}</span> ${b.t}</div>`;}).join('');
+  const STABLE=5000,FRESH=640,PIN=3.0/1e6,CW=3.75/1e6,CR=0.30/1e6;
+  function compute(calls){return {noCache:calls*(STABLE+FRESH)*PIN,cache:(STABLE*CW+FRESH*PIN)+(calls-1)*(STABLE*CR+FRESH*PIN)};}
+  function drawCost(){
+    const calls=parseInt(document.getElementById('pc-calls').value);
+    document.getElementById('pc-calls-lbl').textContent=calls;
+    const {noCache,cache}=compute(calls),saved=noCache-cache,pct=noCache>0?Math.round(saved/noCache*100):0;
+    document.getElementById('pc-nocache').textContent='$'+noCache.toFixed(4);
+    document.getElementById('pc-cache').textContent='$'+cache.toFixed(4);
+    document.getElementById('pc-saved').textContent=pct+'%';
+    document.getElementById('pc-saved').style.color=saved>=0?'#185FA5':'#993C1D';
+    let note;
+    if(calls===1)note="At just 1 call, caching costs slightly MORE — you paid the cache-write premium and never reused it. Break-even hasn't happened yet.";
+    else if(calls<3)note="Around 2 calls, caching breaks even. The write premium is paid off; from here every reuse is almost pure savings.";
+    else if(calls<15)note="Caching is clearly winning. Each reuse reads the cached prefix at ~10% of the normal input price instead of re-processing it.";
+    else note="At high reuse, savings approach the theoretical max. For a busy agent making thousands of calls against the same prefix, this is the difference between viable and bankrupt.";
+    document.getElementById('pc-cost-note').innerHTML=note;
+  }
+  document.getElementById('pc-calls').addEventListener('input',drawCost);
+  document.querySelectorAll('#pc-seg .segbtn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+  setMode('what');
+})();
+</script>
+</body>
+</html>

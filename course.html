@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Engineering — Interactive Course</title>
+<style>
+  :root{
+    --bg:#FBFAF7;--bg2:#F2F0E9;--bg3:#E9E6DC;--bt:#E7E4DA;--bs:#D5D2C8;
+    --tp:#1b1a18;--ts:#55534d;--tt:#8d8a82;
+    --p:#534AB7;--pl:#7F77DD;--pbg:#EEEDFE;--pink:#3C3489;
+    --t:#0F6E56;--tbg:#E1F5EE;--tdk:#085041;
+    --a:#854F0B;--abg:#FAEEDA;--adk:#633806;
+    --c:#993C1D;--cbg:#FAECE7;--cdk:#712B13;--b:#185FA5;--bbg:#E6F1FB;--bdk:#0C447C;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--tp);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--pbg);color:var(--pink)}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  .hero{padding:3.5rem 0 1.5rem;text-align:center;border-bottom:1px solid var(--bt)}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--pl);margin-bottom:1rem}
+  .hero h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.02;letter-spacing:-.03em;font-weight:700;margin:0 auto .8rem;max-width:18ch}
+  .hero h1 em{font-style:normal;background:linear-gradient(105deg,var(--p),var(--b),var(--t));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{font-size:1.05rem;color:var(--ts);max-width:56ch;margin:0 auto}
+  /* pipeline nav */
+  .pipe{position:sticky;top:0;z-index:20;background:rgba(251,250,247,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--bt);padding:10px 0}
+  .pipe-inner{display:flex;gap:6px;max-width:960px;margin:0 auto;padding:0 20px;overflow-x:auto}
+  .pstep{flex:1;min-width:80px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;text-decoration:none;padding:4px 2px;border-radius:8px;transition:background .15s}
+  .pstep:hover{background:var(--bg2)}
+  .pdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;background:var(--bg3);color:var(--tt);border:2px solid transparent;transition:all .2s}
+  .pstep.done .pdot{background:var(--t);color:#fff}
+  .pstep.active .pdot{background:var(--p);color:#fff;box-shadow:0 0 0 3px var(--pbg)}
+  .plabel{font-size:9.5px;color:var(--ts);text-align:center;line-height:1.15;max-width:84px}
+  .pstep.active .plabel{color:var(--p);font-weight:600}
+  /* lesson block */
+  .lesson{padding:2.6rem 0;border-bottom:1px solid var(--bt);scroll-margin-top:74px}
+  .lhead{display:flex;align-items:center;gap:13px;margin-bottom:.5rem}
+  .lnum{font-family:var(--mono);font-size:12px;font-weight:600;color:#fff;padding:4px 11px;border-radius:20px}
+  .lhead h2{font-size:clamp(1.5rem,3vw,2.1rem);letter-spacing:-.02em;margin:0;font-weight:660}
+  .lsub{font-size:1rem;color:var(--ts);margin:0 0 1.2rem;max-width:64ch}
+  .lframe-wrap{border:1px solid var(--bt);border-radius:14px;overflow:hidden;background:var(--bg);box-shadow:0 2px 12px rgba(0,0,0,.04)}
+  .lframe-bar{display:flex;align-items:center;gap:8px;padding:8px 13px;background:var(--bg2);border-bottom:1px solid var(--bt);font-family:var(--mono);font-size:11px;color:var(--tt)}
+  .lframe-bar .dot{width:9px;height:9px;border-radius:50%}
+  .lframe-bar a{margin-left:auto;color:var(--p);text-decoration:none;font-weight:600}
+  iframe{width:100%;height:560px;border:0;display:block;background:var(--bg)}
+  /* quiz */
+  .quiz{margin-top:1.6rem;background:var(--bg2);border-radius:14px;padding:1.3rem 1.4rem}
+  .quiz-h{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--pink);margin-bottom:.3rem}
+  .quiz-h .ic{width:22px;height:22px;border-radius:6px;background:var(--pbg);display:flex;align-items:center;justify-content:center;font-size:13px}
+  .quiz-sub{font-size:12px;color:var(--ts);margin-bottom:1rem}
+  .qprog{display:flex;gap:4px;margin-bottom:1rem}
+  .qseg{flex:1;height:4px;border-radius:3px;background:var(--bg3)}
+  .qseg.ok{background:var(--t)}.qseg.bad{background:var(--c)}.qseg.cur{background:var(--p)}
+  .qcard{background:var(--bg);border:1px solid var(--bt);border-radius:12px;padding:1.1rem 1.3rem}
+  .qnum{font-size:10.5px;color:var(--tt);letter-spacing:.05em;margin-bottom:5px}
+  .qtext{font-size:13.5px;font-weight:500;line-height:1.55;margin-bottom:12px}
+  .opt{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:9px;border:1px solid var(--bs);margin-bottom:6px;cursor:pointer;background:var(--bg2);transition:all .15s}
+  .opt:hover{border-color:var(--pl);background:var(--pbg)}
+  .opt.sel{border-color:var(--p);background:var(--pbg)}
+  .opt.correct{border-color:var(--t);background:var(--tbg);pointer-events:none}
+  .opt.wrong{border-color:var(--c);background:var(--cbg);pointer-events:none}
+  .opt.reveal{border-color:var(--t);background:var(--tbg);pointer-events:none}
+  .olet{width:20px;height:20px;border-radius:50%;background:var(--bg);border:1px solid var(--bs);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;color:var(--ts)}
+  .opt.sel .olet{background:var(--pbg);border-color:var(--p);color:var(--pink)}
+  .opt.correct .olet,.opt.reveal .olet{background:var(--tbg);border-color:var(--t);color:var(--tdk)}
+  .opt.wrong .olet{background:var(--cbg);border-color:var(--c);color:var(--cdk)}
+  .otext{font-size:12.5px;line-height:1.45}
+  .fb{border-radius:9px;padding:10px 13px;font-size:12.5px;line-height:1.6;margin-top:9px;display:none}
+  .fb.show{display:block}
+  .fb.ok{background:var(--tbg);border:1px solid var(--t);color:var(--tdk)}
+  .fb.bad{background:var(--cbg);border:1px solid var(--c);color:var(--cdk)}
+  .btn{display:inline-block;padding:7px 15px;font-size:12.5px;border:1px solid var(--bs);border-radius:8px;cursor:pointer;background:var(--bg2);color:var(--tp);margin:3px 3px 0 0;font-family:inherit}
+  .btn:hover{background:var(--bg3)}
+  .btn.pri{background:var(--pbg);border-color:var(--p);color:var(--pink);font-weight:600}
+  .btn.teal{background:var(--tbg);border-color:var(--t);color:var(--tdk);font-weight:600}
+  .qdone{text-align:center;padding:1.4rem}
+  .qscore{font-size:38px;font-weight:600}
+  .nextbar{display:flex;justify-content:center;margin-top:1.4rem}
+  .finish{text-align:center;padding:4rem 0 2rem}
+  .finish h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:700;letter-spacing:-.02em;margin:0 auto 1rem;max-width:18ch}
+  .finish p{color:var(--ts);max-width:54ch;margin:0 auto 1rem;font-size:1.02rem;line-height:1.7}
+  .finish a.cap{display:inline-block;margin-top:.6rem;padding:11px 22px;border-radius:10px;background:var(--p);color:#fff;text-decoration:none;font-weight:600;font-size:14px}
+  .footer{padding:2rem 0 3rem;text-align:center;color:var(--tt);font-size:12px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<div class="pipe"><div class="pipe-inner" id="pipe"></div></div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Interactive Course · 8 Steps</div>
+    <h1>AI Agent <em>Engineering</em></h1>
+    <p>An end-to-end pipeline: work through each lesson's interactive companion, then pass its quiz. Build → ship → know it works.</p>
+  </header>
+
+  <div id="course"></div>
+
+  <section class="finish" id="finish" style="display:none">
+    <h2>🎉 You've completed the roadmap</h2>
+    <p>Eight steps, from "what is a transformer?" to "how do I know my production agent works?" You learned how the pieces compose into a system — the difference between using agents and engineering them.</p>
+    <a class="cap" href="lessons/00_roadmap_capstone_index.html">Open the capstone index ↗</a>
+  </section>
+
+  <div class="footer">AI Agent Engineering · interactive study companion · all lessons offline-ready</div>
+</div>
+
+<script>
+// ---------- lesson metadata ----------
+const LESSONS=[
+  {n:1,title:"LLM Fundamentals",sub:"How a transformer turns tokens into predictions — attention, the residual stream, and why next-token prediction scales into reasoning.",file:"lessons/lesson1_transformers_interactive.html",c:"#534AB7"},
+  {n:2,title:"Context Engineering",sub:"The context window is the agent's whole world — prompting, the data-vs-instructions boundary, and a finite attention budget.",file:"lessons/lesson2_context_engineering_interactive.html",c:"#185FA5"},
+  {n:3,title:"Memory Architecture",sub:"Four kinds of memory by timescale — session, RAG, episodic, prompt caching — so the agent persists beyond one window.",file:"lessons/lesson3_memory_architecture_interactive.html",c:"#0F6E56"},
+  {n:4,title:"Agentic Workflows",sub:"The ReAct loop that turns a model into an agent — reason, act, observe — plus tools and multi-agent patterns.",file:"lessons/lesson4_agentic_workflows_interactive.html",c:"#854F0B"},
+  {n:5,title:"MCP & Tools",sub:"The USB-C of AI — N×M integrations become N+M, the three primitives, the lifecycle, and the security risks.",file:"lessons/lesson5_mcp_tools_interactive.html",c:"#993C1D"},
+  {n:6,title:"AI Gateways",sub:"One control point every request flows through — routing, fallbacks, cost control, rate limiting. Power from position.",file:"lessons/lesson6_ai_gateways_interactive.html",c:"#185FA5"},
+  {n:7,title:"Guardrails & Safety",sub:"Checkpoints on every boundary — input, output, action — plus PII handling and human-in-the-loop. Defense in depth.",file:"lessons/lesson7_guardrails_safety_interactive.html",c:"#854F0B"},
+  {n:8,title:"Observability & Evaluation",sub:"The two halves of knowing it works — tracing, logs & metrics (microscope) and eval suites with a deploy gate (dashboard).",file:"lessons/lesson8_observability_evaluation_interactive.html",c:"#0F6E56"},
+];
+
+// ---------- quizzes (correct = index into options; SHUFFLED at render) ----------
+const QUIZ={
+1:[
+ {q:"Why can next-token prediction give rise to reasoning rather than just autocomplete?",o:["Because the model stores a database of every answer","Because to predict the next token well across vast text, the model must learn structure, relationships, and patterns that generalize","Because it copies the nearest training sentence","Because tokens are randomly sampled"],c:1,e:"Compression of how language works forces general structure to emerge — not lookup."},
+ {q:"What is the residual stream best described as?",o:["The final softmax output","A running 'workspace' each layer reads from and writes back to, carrying information forward","The tokenizer's vocabulary","A cache of past prompts"],c:1,e:"Layers incrementally refine a shared running representation."},
+ {q:"Attention lets a token do what?",o:["Ignore all other tokens","Selectively pull in information from other relevant tokens in the context","Delete tokens it dislikes","Increase the vocabulary size"],c:1,e:"Attention is selective, content-based information routing between positions."},
+ {q:"A longer context costs more compute because attention scales how?",o:["Linearly with length","Roughly quadratically — every token can attend to every other","Not at all","Inversely with length"],c:1,e:"Pairwise attention is ~O(n²), which is why context is a budget."},
+ {q:"Tokens are:",o:["Always whole words","Sub-word chunks the model actually operates on","Single characters only","The same as embeddings"],c:1,e:"Text is split into sub-word tokens before anything else happens."},
+],
+2:[
+ {q:"The single most important idea in context engineering is that:",o:["Longer prompts are always better","The context window is the agent's entire world — only what's in it can be used","The model remembers past chats by default","System prompts are optional"],c:1,e:"No hidden state — if it's not in context, it doesn't exist for this turn."},
+ {q:"Prompt injection exploits which weakness?",o:["The model can't read","The model doesn't inherently distinguish trusted instructions from untrusted data in its context","The context is too short","Tokens cost money"],c:1,e:"Everything is just text; malicious data can masquerade as instructions."},
+ {q:"Chain-of-thought improves answers by:",o:["Making the model faster","Giving the model space to externalize intermediate reasoning as tokens","Reducing token cost","Skipping hard steps"],c:1,e:"Reasoning rendered as tokens becomes usable working memory."},
+ {q:"Putting the key instruction at the very end of a long context helps because:",o:["The model only reads the end","Recency: content near the end often gets stronger attention","It saves tokens","Order never matters"],c:1,e:"Position affects salience; ends (and starts) tend to dominate."},
+ {q:"As a conversation grows, the message array:",o:["Stays constant","Accumulates and is resent each turn, raising token cost","Is deleted each turn","Compresses itself automatically"],c:1,e:"Stateless models require resending the growing history."},
+],
+3:[
+ {q:"RAG retrieves relevant documents by:",o:["Exact keyword equality only","Semantic similarity in embedding space — meaning, not just words","Random sampling","Asking the user"],c:1,e:"Embeddings let 'return policy' match 'how do I send it back'."},
+ {q:"Session memory works by:",o:["Storing data in the model's weights","Resending the conversation history in the context each turn","A permanent database write","Prompt caching only"],c:1,e:"Short-term continuity = the running message array."},
+ {q:"Prompt caching saves money by:",o:["Skipping the model entirely","Discounting re-processing of an unchanged prompt prefix","Compressing the output","Deleting old turns"],c:1,e:"A stable prefix (e.g. a big system prompt) is cached and billed less."},
+ {q:"Episodic memory is distinguished by its:",o:["Millisecond timescale","Durable, cross-session persistence of facts about a user","Lack of storage","Being identical to RAG"],c:1,e:"It's the long-timescale layer — remembering across sessions."},
+ {q:"The four memory types are best organized along which axis?",o:["Color","Timescale / persistence","Alphabetical","Cost only"],c:1,e:"Session → cache → RAG → episodic span short to long timescales."},
+],
+4:[
+ {q:"The ReAct loop consists of:",o:["Read, agree, commit, transmit","Reason, act (tool call), observe (result) — repeated","Render and cache","Retrieve and compress"],c:1,e:"The agent thinks, acts via a tool, sees the result, and loops."},
+ {q:"In the tool-use loop, you must check stop_reason BEFORE appending because:",o:["It saves tokens","If stop_reason isn't 'tool_use', the model is done — appending/looping would be wrong","The id changes","It's required by JSON"],c:1,e:"end_turn means stop; only tool_use means run a tool and continue."},
+ {q:"A tool result must echo the tool_use_id so that:",o:["The model can bill you","The model can match each result to the call that requested it","The tool runs faster","Security is bypassed"],c:1,e:"The id links result back to the originating tool_use block."},
+ {q:"Coding became a 'killer app' for agents mainly because:",o:["Code is short","It has verifiable feedback — tests give an objective pass/fail signal","Developers are patient","It needs no tools"],c:1,e:"An objective signal lets the agent self-correct in a loop."},
+ {q:"An orchestrator–worker multi-agent pattern fits a task that is:",o:["A single fixed step","Decomposable into parallel sub-tasks coordinated by a lead","Purely conversational","Impossible to break down"],c:1,e:"Match the agent topology to the task's structure."},
+],
+5:[
+ {q:"MCP's core value is turning integration complexity from:",o:["N+M into N×M","N×M custom integrations into N+M via one standard protocol","Free into expensive","Local into remote"],c:1,e:"A shared protocol — the 'USB-C of AI' — collapses the matrix."},
+ {q:"MCP's three primitives are:",o:["GET, POST, PUT","Tools (model-controlled), resources (app-controlled), prompts (user-controlled)","Input, output, action","Train, test, deploy"],c:1,e:"Each primitive differs by who controls invocation."},
+ {q:"What makes MCP 'dynamic' at runtime?",o:["It rewrites the model","Discovery — the client lists a server's tools via tools/list at connect time","It caches everything","It blocks all tools"],c:1,e:"The agent learns available tools on connection, not hard-coded."},
+ {q:"'Tool poisoning' refers to:",o:["A slow tool","Malicious instructions hidden in a tool's description or results","A tool that costs too much","A deprecated API"],c:1,e:"Untrusted tool metadata/output can carry injected instructions."},
+ {q:"A reasonable MCP defense is to:",o:["Trust every server fully","Vet servers, wrap results as data, apply least privilege, require human approval","Disable logging","Share all credentials"],c:1,e:"Treat external tools as untrusted; constrain their authority."},
+],
+6:[
+ {q:"A gateway's power comes from:",o:["Being a smarter model","Its POSITION — every request flows through one control point","Caching model weights","Replacing the provider"],c:1,e:"Middleware on the request path; not intelligence."},
+ {q:"'Always use the best model' is wrong because:",o:["The best model is illegal","Right-sizing per request is cheaper AND often a better fit; the biggest model can over-think simple tasks","Smaller models can't do anything","It never matters"],c:1,e:"Route by complexity; ~18× cost spread across tiers."},
+ {q:"On a 400 Bad Request, the gateway should:",o:["Retry with backoff","Fail fast — the request itself is malformed, so retry/fallback fail identically","Fall back to a cheaper model","Queue it"],c:1,e:"Retry only for capacity/availability errors, not bad requests."},
+ {q:"A circuit breaker prevents:",o:["All errors","Wastefully re-probing a provider that is already down","Token growth","Caching"],c:1,e:"It opens after repeated failures and skips the dead provider."},
+ {q:"Output tokens vs input tokens are priced:",o:["The same","Output ~5× more, so response length is a real cost lever","Output is free","Input is 5× more"],c:1,e:"Reasoning/length cost is dominated by output pricing."},
+],
+7:[
+ {q:"When a guardrail itself errors, the safe default is to:",o:["Allow the request through","Block (fail closed) — a guardrail that fails open vanishes when you need it","Skip remaining checks","Retry without guardrails"],c:1,e:"Fail closed: default to deny on uncertainty/error."},
+ {q:"A legit message containing a card number should be:",o:["Blocked outright","Redacted (sanitize the PII) and passed through","Ignored","Sent to all users"],c:1,e:"Block bad intent; sanitize sensitive data."},
+ {q:"Output guardrails are still needed with perfect input guardrails because:",o:["They format text","The model is non-deterministic — clean input can still yield a leak/hallucination/policy violation","They replace input checks","They are faster"],c:1,e:"Inspect every output; it's the last line of defense."},
+ {q:"Tokenization (vs redaction) is right when:",o:["You never need the value again","One downstream tool needs the real value, but the model/logs shouldn't see it","You want to delete data","Speed is the only goal"],c:1,e:"Vault-backed token shrinks leak blast radius to one path."},
+ {q:"Which tool action most needs human approval?",o:["Reading a balance","Issuing a $5,000 refund or sending a customer email (high-impact / irreversible)","Searching the KB","Looking up an order"],c:1,e:"Gate by reversibility × impact, not everything."},
+],
+8:[
+ {q:"To know if a prompt change hurt quality BEFORE shipping, you use:",o:["Observability (open a trace)","Evaluation — run the eval suite and compare aggregate pass rate; proactive","The production dashboard after shipping","Nothing — wait for complaints"],c:1,e:"Evaluation is aggregate + proactive; catches regressions pre-deploy."},
+ {q:"A trace is:",o:["A flat log file","The tree of spans for one run, all sharing a trace_id","An average latency","The final response text"],c:1,e:"Nested spans mirror the ReAct loop; trace_id ties them."},
+ {q:"The right order to debug an error-rate spike is:",o:["Traces → logs → metrics","Metrics (detect) → logs (narrow, via trace_id) → traces (root cause)","Logs → metrics → traces","Metrics only"],c:1,e:"A funnel from aggregate to specific."},
+ {q:"You should track latency as percentiles because:",o:["Averages are illegal","The average hides the slow tail; p95/p99 show the worst real experiences","Percentiles are cheaper","The median equals the mean"],c:1,e:"Agents have long tails from looping and fallbacks."},
+ {q:"After fixing a production bug, the step that prevents it reshipping is:",o:["More logging","Adding it as a golden eval case enforced by the deploy gate","Higher alert sensitivity","A one-off manual test"],c:1,e:"Observability (reactive) feeds evaluation (proactive)."},
+ {q:"A model swap drops pass rate 0.97→0.92 (threshold 0.95). The gate:",o:["Deploys anyway for cost savings","BLOCKS the deploy — quality regression caught in CI before users feel it","Emails a warning and ships","Does nothing"],c:1,e:"Test-gated CI for agent quality: a hard stop you must override consciously."},
+],
+};
+
+// ---------- render pipeline nav ----------
+const state={done:new Set(),active:1};
+function renderPipe(){
+  document.getElementById("pipe").innerHTML=LESSONS.map(l=>
+    `<a class="pstep ${state.done.has(l.n)?'done':''} ${state.active===l.n?'active':''}" href="#l${l.n}" data-n="${l.n}">
+      <span class="pdot">${state.done.has(l.n)?'✓':l.n}</span>
+      <span class="plabel">${l.title}</span></a>`).join("");
+}
+
+// ---------- shuffle helper (Fisher–Yates) ----------
+function shuffled(arr){const a=arr.map((v,i)=>[v,i]);for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// ---------- build each lesson + quiz ----------
+const course=document.getElementById("course");
+LESSONS.forEach(l=>{
+  const sec=document.createElement("section");
+  sec.className="lesson";sec.id="l"+l.n;
+  sec.innerHTML=`
+    <div class="lhead"><span class="lnum" style="background:${l.c}">STEP ${l.n}</span><h2>${l.title}</h2></div>
+    <p class="lsub">${l.sub}</p>
+    <div class="lframe-wrap">
+      <div class="lframe-bar"><span class="dot" style="background:${l.c}"></span>interactive lesson<a href="${l.file}" target="_blank">open full ↗</a></div>
+      <iframe src="${l.file}" loading="lazy" title="${l.title}"></iframe>
+    </div>
+    <div class="quiz" id="quiz${l.n}"></div>`;
+  course.appendChild(sec);
+  buildQuiz(l);
+});
+
+// ---------- quiz engine ----------
+function buildQuiz(l){
+  const root=document.getElementById("quiz"+l.n);
+  // shuffle options per question, remap correct index
+  const qs=QUIZ[l.n].map(item=>{
+    const sh=shuffled(item.o);
+    const opts=sh.map(([txt])=>txt);
+    const correct=sh.findIndex(([,origIdx])=>origIdx===item.c);
+    return {q:item.q,opts,correct,e:item.e};
+  });
+  const st={cur:0,ans:Array(qs.length).fill(null),lock:Array(qs.length).fill(false),score:0};
+  root.innerHTML=`
+    <div class="quiz-h"><span class="ic">✔︎</span> Lesson ${l.n} Quiz</div>
+    <div class="quiz-sub">${qs.length} questions · answer positions are shuffled</div>
+    <div class="qprog" id="qp${l.n}"></div>
+    <div id="qa${l.n}"></div>
+    <div id="qn${l.n}" style="margin-top:.4rem"></div>`;
+  function prog(){document.getElementById("qp"+l.n).innerHTML=qs.map((_,i)=>`<div class="qseg ${i<st.cur&&st.ans[i]!==null?(st.ans[i]===qs[i].correct?'ok':'bad'):(i===st.cur?'cur':'')}"></div>`).join("");}
+  function draw(){
+    const i=st.cur,q=qs[i];
+    document.getElementById("qa"+l.n).innerHTML=`
+      <div class="qcard">
+        <div class="qnum">Question ${i+1} of ${qs.length}</div>
+        <div class="qtext">${q.q}</div>
+        <div id="opts${l.n}">${q.opts.map((o,oi)=>`
+          <div class="opt ${st.lock[i]?(oi===q.correct?'reveal':(st.ans[i]===oi?'wrong':'')):(st.ans[i]===oi?'sel':'')}" data-oi="${oi}">
+            <div class="olet">${'ABCD'[oi]}</div><div class="otext">${o}</div></div>`).join("")}</div>
+        <div class="fb ${st.lock[i]?(st.ans[i]===q.correct?'ok show':'bad show'):''}">${st.lock[i]?(st.ans[i]===q.correct?'<b>Correct.</b> ':'<b>Not quite.</b> ')+q.e:''}</div>
+      </div>`;
+    document.getElementById("opts"+l.n).querySelectorAll(".opt").forEach(el=>el.onclick=()=>{if(st.lock[i])return;st.ans[i]=+el.dataset.oi;draw();});
+    nav();prog();
+  }
+  function nav(){
+    const i=st.cur,last=i===qs.length-1;let h="";
+    if(!st.lock[i]&&st.ans[i]!==null)h+=`<button class="btn pri" id="cf${l.n}">Confirm</button>`;
+    if(st.lock[i]&&!last)h+=`<button class="btn teal" id="nx${l.n}">Next →</button>`;
+    if(st.lock[i]&&last)h+=`<button class="btn teal" id="rs${l.n}">See result →</button>`;
+    document.getElementById("qn"+l.n).innerHTML=h;
+    const cf=document.getElementById("cf"+l.n);if(cf)cf.onclick=()=>{st.lock[i]=true;if(st.ans[i]===qs[i].correct)st.score++;draw();};
+    const nx=document.getElementById("nx"+l.n);if(nx)nx.onclick=()=>{st.cur++;draw();};
+    const rs=document.getElementById("rs"+l.n);if(rs)rs.onclick=done;
+  }
+  function done(){
+    const pct=Math.round(st.score/qs.length*100);
+    const col=pct>=80?"var(--t)":pct>=60?"var(--a)":"var(--c)";
+    document.getElementById("qa"+l.n).innerHTML=`
+      <div class="qcard qdone">
+        <div class="qscore" style="color:${col}">${st.score}/${qs.length}</div>
+        <div style="font-size:13px;color:${col};font-weight:600;margin-bottom:6px">${pct}%</div>
+        <div style="font-size:12.5px;color:var(--ts);max-width:380px;margin:0 auto">${pct>=80?'Strong — Lesson '+l.n+' locked in.':pct>=60?'Good. Skim the ones you missed before moving on.':'Worth replaying the lesson above before continuing.'}</div>
+        <div style="margin-top:14px"><button class="btn" id="rt${l.n}">Retry</button>${l.n<8?`<button class="btn pri" id="go${l.n}">Continue to Lesson ${l.n+1} →</button>`:`<button class="btn pri" id="go${l.n}">Finish course 🎉</button>`}</div>
+      </div>`;
+    document.getElementById("qn"+l.n).innerHTML="";
+    state.done.add(l.n);renderPipe();
+    document.getElementById("rt"+l.n).onclick=()=>{st.cur=0;st.ans=Array(qs.length).fill(null);st.lock=Array(qs.length).fill(false);st.score=0;draw();};
+    document.getElementById("go"+l.n).onclick=()=>{
+      if(l.n<8){location.hash="#l"+(l.n+1);}
+      else{document.getElementById("finish").style.display="block";document.getElementById("finish").scrollIntoView({behavior:"smooth"});}
+    };
+  }
+  draw();
+}
+
+// ---------- active-step tracking ----------
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){state.active=+e.target.id.slice(1);renderPipe();}}),{rootMargin:"-40% 0px -55% 0px"});
+document.querySelectorAll(".lesson").forEach(s=>obs.observe(s));
+renderPipe();
+</script>
+</body>
+</html>

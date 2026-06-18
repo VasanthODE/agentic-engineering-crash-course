@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 4 · Agentic Workflows</title>
+<style>
+  :root{
+    --bg:#FBFAF7; --bg2:#F2F0E9; --bg3:#E9E6DC;
+    --bt:#E7E4DA; --bs:#D5D2C8;
+    --tp:#1b1a18; --ts:#55534d; --tt:#8d8a82;
+    --p:#534AB7; --pl:#7F77DD; --pbg:#EEEDFE; --pink:#3C3489;
+    --t:#0F6E56; --tl:#1D9E75; --tbg:#E1F5EE; --tdk:#085041;
+    --a:#854F0B; --al:#EF9F27; --abg:#FAEEDA; --adk:#633806;
+    --c:#993C1D; --cl:#D85A30; --cbg:#FAECE7; --cdk:#712B13;
+    --b:#185FA5; --bl:#378ADD; --bbg:#E6F1FB; --bdk:#0C447C;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--tp);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--pbg);color:var(--pink)}
+  .shell{max-width:1080px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:240px 1fr;gap:36px}
+  @media(max-width:880px){.shell{grid-template-columns:1fr;gap:0}.spine{display:none}}
+
+  .hero{grid-column:1/-1;padding:5rem 0 2.5rem;border-bottom:1px solid var(--bt)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--pl);margin-bottom:1.2rem}
+  .hero h1{font-size:clamp(2.4rem,5.5vw,3.8rem);line-height:1.02;letter-spacing:-.03em;font-weight:680;margin:0 0 1.1rem;max-width:15ch}
+  .hero h1 em{font-style:normal;color:var(--p)}
+  .hero p{font-size:1.12rem;color:var(--ts);max-width:58ch;margin:0}
+  .hero .meta{margin-top:2rem;display:flex;gap:28px;flex-wrap:wrap;font-family:var(--mono);font-size:12.5px;color:var(--tt)}
+  .hero .meta b{color:var(--tp);font-weight:600}
+
+  .spine{position:sticky;top:0;align-self:start;height:100vh;padding-top:3rem;overflow:hidden}
+  .spine-cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tt);margin:0 0 16px 4px}
+  .spine-inner{position:relative;padding-left:26px}
+  .spine-rail{position:absolute;left:7px;top:8px;bottom:46px;width:2px;background:linear-gradient(var(--al),var(--tl),var(--orch,#854F0B),var(--cl));border-radius:2px;opacity:.4}
+  .spine-loop{position:absolute;left:0;bottom:14px;font-size:13px;color:var(--a);font-family:var(--mono)}
+  .spine a{display:block;position:relative;padding:8px 0;text-decoration:none;line-height:1.25;transition:all .2s}
+  .spine a .nm{font-size:13px;color:var(--ts)}
+  .spine a .ph{font-family:var(--mono);font-size:10px;color:var(--tt);display:block;margin-top:1px}
+  .spine a::before{content:"";position:absolute;left:-26px;top:11px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:2px solid var(--bs);transition:all .25s}
+  .spine a:hover .nm{color:var(--tp)}
+  .spine a.on .nm{color:var(--tp);font-weight:600}
+  .spine a.on::before{background:var(--a);border-color:var(--a);box-shadow:0 0 0 4px var(--abg)}
+
+  main{padding-top:2rem;padding-bottom:6rem;min-width:0}
+  section{padding:2.6rem 0;border-bottom:1px solid var(--bt);scroll-margin-top:20px}
+  section:last-child{border-bottom:none}
+  .sec-eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pl);margin-bottom:.7rem;display:flex;align-items:center;gap:9px}
+  .sec-eyebrow .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--abg);color:var(--adk);font-size:11px;font-weight:600}
+  h2{font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.02em;line-height:1.1;font-weight:660;margin:0 0 .9rem}
+  .lead{font-size:1.05rem;color:var(--ts);max-width:62ch;margin:0 0 1.5rem}
+  .lead strong{color:var(--tp);font-weight:620}
+  .subhead{font-size:1.05rem;font-weight:600;color:var(--tp);margin:2rem 0 .6rem}
+  .body{font-size:1rem;color:var(--ts);max-width:62ch}
+  .body strong{color:var(--tp);font-weight:600}
+  .takeaway{margin-top:1.4rem;padding:13px 16px;border-radius:10px;font-size:13.5px;line-height:1.65;background:var(--abg);color:var(--adk);border-left:3px solid var(--a)}
+  .takeaway b{font-weight:650}
+
+  .hint{font-size:13px;color:var(--ts);margin-bottom:10px}
+  .label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--tt);margin:0 0 6px;font-weight:600}
+  .card{background:var(--bg);border:1px solid var(--bt);border-radius:12px;padding:14px}
+  .mono{font-family:var(--mono)}
+  svg{display:block;max-width:100%}
+  .btn{display:inline-block;padding:7px 15px;font-size:13px;border:1px solid var(--p);border-radius:8px;cursor:pointer;background:var(--pbg);color:var(--pink);font-weight:600;user-select:none}
+  .btn:hover{filter:brightness(.97)}
+  .btn.sec{border-color:var(--bs);background:var(--bg2);color:var(--tp);font-weight:400}
+  .seg{display:flex;gap:6px;margin-bottom:14px}
+  .segbtn{flex:1;padding:8px 10px;font-size:13px;text-align:center;border:1px solid var(--bs);border-radius:8px;cursor:pointer;background:var(--bg2);color:var(--ts);transition:all .15s;user-select:none}
+  .segbtn.on{font-weight:600}
+  .read{margin-top:14px;padding:12px 15px;border-radius:8px;font-size:13px;line-height:1.65}
+  .read.a{background:var(--abg);color:var(--adk);border-left:3px solid var(--a)}
+  .read.bad{background:var(--cbg);color:var(--cdk);border-left:3px solid var(--c)}
+  .read.good{background:var(--tbg);color:var(--tdk);border-left:3px solid var(--t)}
+  .read.b{background:var(--bbg);color:var(--bdk);border-left:3px solid var(--b)}
+  .panel{display:none}.panel.on{display:block}
+  code{font-family:var(--mono);font-size:.92em;background:var(--bg2);padding:1px 5px;border-radius:4px}
+
+  .footer{grid-column:1/-1;padding:3rem 0 4rem;text-align:center;color:var(--tt);font-size:13px;font-family:var(--mono)}
+  .footer .chain{color:var(--ts);font-family:var(--sans);font-size:14px;line-height:1.9;max-width:64ch;margin:0 auto 1.5rem}
+  .footer .chain b{color:var(--a);font-weight:600}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="hero">
+    <div class="eyebrow">AI Agent Engineering · Lesson 4</div>
+    <h1>Agentic <em>workflows</em></h1>
+    <p>This is the pivot. In Lessons 1-3 the model answered. Now it acts — taking an action, observing the result, deciding the next move, and looping until the goal is reached. That loop turns a chatbot into an agent.</p>
+    <div class="meta">
+      <span><b>ReAct</b> loop</span>
+      <span><b>5</b> interactive demos</span>
+      <span>read order: <b>top to bottom</b></span>
+    </div>
+  </header>
+
+  <nav class="spine">
+    <div class="spine-cap">the agent in motion</div>
+    <div class="spine-inner">
+      <div class="spine-rail"></div>
+      <a href="#loop" data-sec="loop"><span class="nm">The ReAct loop</span><span class="ph">reason · act · observe</span></a>
+      <a href="#mechanics" data-sec="mechanics"><span class="nm">Loop mechanics</span><span class="ph">stop_reason · the trap</span></a>
+      <a href="#tools" data-sec="tools"><span class="nm">Tool definitions</span><span class="ph">the decision signal</span></a>
+      <a href="#multi" data-sec="multi"><span class="nm">Multi-agent patterns</span><span class="ph">match shape to task</span></a>
+      <a href="#coding" data-sec="coding"><span class="nm">Coding agents</span><span class="ph">the killer app</span></a>
+      <div class="spine-loop">↻ repeat until done</div>
+    </div>
+  </nav>
+
+  <main>
+
+  <!-- 00 LOOP -->
+  <section id="loop">
+    <div class="sec-eyebrow"><span class="n">01</span> The heartbeat</div>
+    <h2>The ReAct loop</h2>
+    <p class="lead">An agent doesn't answer in one shot. It takes an <strong>action</strong>, observes the result, decides the <strong>next</strong> action from what it just saw, and loops — until the goal is reached. Reason → Act → Observe → repeat.</p>
+    <div class="hint">Step through a real agent trace. Watch each action get chosen from the previous observation — that feedback is what makes it an agent:</div>
+    <div id="loop-root">
+      <div class="card" style="background:var(--pbg);border-color:var(--p);margin-bottom:14px;padding:10px 13px"><span style="font-size:13px;color:var(--pink)"><b style="font-weight:600">Goal:</b> "I want to return order #1234 — can I?"</span></div>
+      <div style="display:flex;gap:8px;margin-bottom:16px" id="rl-phases">
+        <div style="flex:1;text-align:center;padding:8px 6px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--bs);background:var(--bg2);color:var(--tt)" id="rl-p-reason">REASON<br><span style="font-weight:400;font-size:10.5px">think what to do</span></div>
+        <div style="flex:1;text-align:center;padding:8px 6px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--bs);background:var(--bg2);color:var(--tt)" id="rl-p-act">ACT<br><span style="font-weight:400;font-size:10.5px">call a tool</span></div>
+        <div style="flex:1;text-align:center;padding:8px 6px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--bs);background:var(--bg2);color:var(--tt)" id="rl-p-observe">OBSERVE<br><span style="font-weight:400;font-size:10.5px">read the result</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <span class="btn" id="rl-next">▶ Next step</span>
+        <span class="btn sec" id="rl-reset">Reset</span>
+        <span style="font-size:12px;color:var(--tt);font-family:var(--mono)" id="rl-iter">step 0 — not started</span>
+      </div>
+      <div class="card" id="rl-trace" style="min-height:240px"></div>
+      <div class="read a" id="rl-note"></div>
+    </div>
+    <div class="takeaway"><b>The agent decides when it's done.</b> The loop isn't a fixed length — when the model stops calling tools and produces prose, the goal is reached. One question here took two tool calls, each chosen live. That feedback is the whole difference between a chatbot and an agent.</div>
+  </section>
+
+  <!-- 01 MECHANICS -->
+  <section id="mechanics">
+    <div class="sec-eyebrow"><span class="n">02</span> The production reality</div>
+    <h2>Loop mechanics &amp; the stop_reason trap</h2>
+    <p class="lead">The loop is code <strong>you</strong> write, not something the model does. The model responds once and stops; your runtime inspects the response, runs tools, feeds results back, and calls again. The whole control flow hinges on one field: <code>stop_reason</code>.</p>
+    <div id="mech-root">
+      <div class="seg" id="lm-tabs">
+        <div class="segbtn on" data-m="flow">The control flow</div>
+        <div class="segbtn" data-m="trap">The stop_reason trap</div>
+      </div>
+      <div class="panel on" id="lm-flow">
+        <div class="hint">Step through it — pseudocode highlights as the messages array changes:</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <span class="btn" id="lm-next">▶ Next step</span>
+          <span class="btn sec" id="lm-reset">Reset</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" id="lm-cols">
+          <div><div class="label">Your agent runtime (pseudocode)</div><div class="card mono" id="lm-code" style="font-size:11.5px;line-height:1.75"></div></div>
+          <div><div class="label">The messages array (grows each loop)</div><div class="card mono" id="lm-arr" style="min-height:230px;font-size:11px"></div></div>
+        </div>
+        <div class="read a" id="lm-note"></div>
+      </div>
+      <div class="panel" id="lm-trap">
+        <div class="hint">If the model hits its token limit mid-tool-call, <code>stop_reason</code> is <b>"max_tokens"</b> — the response is truncated. Watch naive vs correct handling:</div>
+        <div class="seg" id="lm-ttabs" style="margin-bottom:12px">
+          <div class="segbtn on" data-t="naive">Naive: append &amp; continue</div>
+          <div class="segbtn" data-t="correct">Correct: check first</div>
+        </div>
+        <div class="label">The messages array after a truncated response</div>
+        <div class="card mono" id="lm-trap-arr" style="min-height:150px;font-size:11px"></div>
+        <div class="read" id="lm-trap-note"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>stop_reason has more than two values — handle every one.</b> The fragile loop assumes "tool or done." The robust loop branches on tool_use, end_turn, AND max_tokens. Also: every tool result must echo the exact <code>tool_use_id</code> from the request, or the API rejects the turn.</div>
+  </section>
+
+  <!-- 02 TOOLS -->
+  <section id="tools">
+    <div class="sec-eyebrow"><span class="n">03</span> What the loop acts through</div>
+    <h2>Tool definitions</h2>
+    <p class="lead">When an agent calls the wrong tool, the bug is almost never your code — it's your <strong>descriptions</strong>. The model chooses tools by reasoning over the text you wrote. The description isn't documentation; it's the decision signal.</p>
+    <div id="tool-root">
+      <div class="seg" id="td-tabs">
+        <div class="segbtn on" data-m="desc">Description = decision signal</div>
+        <div class="segbtn" data-m="schema">The parameter schema</div>
+      </div>
+      <div class="panel on" id="td-desc">
+        <div class="card" style="background:var(--pbg);border-color:var(--p);margin-bottom:14px;padding:10px 13px"><span style="font-size:13px;color:var(--pink)"><b style="font-weight:600">User asks:</b> "Where's my order #5582?"</span></div>
+        <div class="hint">Toggle the description quality and watch which tool the model chooses:</div>
+        <div class="seg" id="td-qtabs">
+          <div class="segbtn" data-q="vague">Vague descriptions</div>
+          <div class="segbtn on" data-q="precise">Precise descriptions</div>
+        </div>
+        <div id="td-tools"></div>
+        <div class="read" id="td-desc-note"></div>
+      </div>
+      <div class="panel" id="td-schema-panel">
+        <div class="hint">Once the model decides to call a tool, the schema tells it how to fill the arguments. Click each part:</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="td-cols">
+          <div><div class="card mono" id="td-schema-code" style="font-size:12px;line-height:1.7"></div></div>
+          <div><div id="td-schema-side" style="font-size:13px;line-height:1.7;color:var(--ts)"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Write descriptions for the model, not for yourself.</b> State what each tool does AND what it does not do — "does NOT access specific orders" is what lets the model rule out the wrong choice. Use enums for fixed values, examples in parameter descriptions, and mark required fields so the agent asks for what it's missing.</div>
+  </section>
+
+  <!-- 03 MULTI -->
+  <section id="multi">
+    <div class="sec-eyebrow"><span class="n">04</span> When one agent isn't enough</div>
+    <h2>Multi-agent patterns</h2>
+    <p class="lead">The skill isn't reaching for many agents — it's knowing when one won't do, then matching the <strong>topology to the task's structure</strong>. Independent subtasks parallelize; dependent ones sequence; high stakes get a critic.</p>
+    <div class="hint">Click each pattern to see its topology, data flow, and the task structure it fits:</div>
+    <div id="multi-root">
+      <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap" id="ma-tabs"></div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:15px;font-weight:600;margin-bottom:3px" id="ma-title"></div>
+        <div style="font-size:12.5px;color:var(--ts);margin-bottom:14px" id="ma-tagline"></div>
+        <svg viewBox="0 0 660 200" role="img" id="ma-svg" aria-label="Agent topology diagram"></svg>
+      </div>
+      <div id="ma-detail" style="border-radius:8px;padding:13px 15px;font-size:13px;line-height:1.7"></div>
+    </div>
+    <div class="takeaway"><b>Match the topology to the task, and prefer the simplest that works.</b> Single agent → most of the time. Dependency chain → pipeline. Independent subtasks → parallel orchestrator. Costly errors → debate/critic. Every extra agent multiplies cost, latency, and failure modes.</div>
+  </section>
+
+  <!-- 04 CODING -->
+  <section id="coding">
+    <div class="sec-eyebrow"><span class="n">05</span> The breakthrough domain</div>
+    <h2>Coding agents</h2>
+    <p class="lead">The same ReAct loop, pointed at a filesystem and a terminal, produces tools like Claude Code. Coding broke through first not by accident — it has three properties that make it nearly ideal terrain for agents.</p>
+    <div id="coding-root">
+      <div class="seg" id="ca-tabs">
+        <div class="segbtn on" data-m="loop">The coding loop</div>
+        <div class="segbtn" data-m="why">Why coding is the killer app</div>
+      </div>
+      <div class="panel on" id="ca-loop">
+        <div class="card" style="background:var(--pbg);border-color:var(--p);margin-bottom:14px;padding:10px 13px"><span style="font-size:13px;color:var(--pink)"><b style="font-weight:600">Task:</b> "The checkout total is wrong — customers are charged for one of each item regardless of quantity. Fix it."</span></div>
+        <div class="hint">Same loop — now the tools are <code>grep</code>, <code>read</code>, <code>edit</code>, <code>run</code>:</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <span class="btn" id="ca-next">▶ Next step</span>
+          <span class="btn sec" id="ca-reset">Reset</span>
+          <span style="font-size:12px;color:var(--tt);font-family:var(--mono)" id="ca-iter">not started</span>
+        </div>
+        <div id="ca-trace" style="background:#1b1a18;border-radius:12px;padding:13px;min-height:250px;font-family:var(--mono);font-size:11.5px;line-height:1.5"></div>
+        <div class="read a" id="ca-note"></div>
+      </div>
+      <div class="panel" id="ca-why">
+        <div class="hint">Three properties make coding almost ideal for agents — click each:</div>
+        <div style="display:grid;grid-template-columns:1fr;gap:10px" id="ca-props"></div>
+        <div class="read good" id="ca-why-note"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Coding gives an agent a tight loop over a verifiable, observable, reversible environment.</b> That's the ideal habitat for ReAct — and why it broke through first. When sizing up any agent problem, ask: can it verify success, see the full state, and undo mistakes?</div>
+  </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="chain">
+      The arc: a model that <b>answered</b> becomes one that <b>acts</b>, through the <b>ReAct loop</b> · the loop is your code, steered by <b>stop_reason</b>, with the message array as memory · the model picks tools by reading their <b>descriptions</b> · when one agent isn't enough, compose <b>multi-agent patterns</b> matched to the task · and <b>coding agents</b> show it all working where agents fit best. Every piece is Lessons 1-3 in motion.
+    </div>
+    Lesson 4 · Agentic Workflows — interactive study companion
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const links=[...document.querySelectorAll('.spine a')];
+  const map={};links.forEach(l=>map[l.dataset.sec]=l);
+  const obs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('on'));if(map[e.target.id])map[e.target.id].classList.add('on');}});},{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('main section').forEach(s=>obs.observe(s));
+})();
+
+/* 00 REACT LOOP */
+(function(){
+  const STEPS=[
+    {phase:"reason",tag:"REASON",text:"To answer this, I first need the order's details — when was it delivered? I don't have that, so I'll look it up.",note:"<b>Iteration 1 · Reason.</b> The agent doesn't guess. It recognises it's missing a fact and plans an action to get it. This 'think before acting' is Chain-of-Thought from Lesson 2, now driving a decision."},
+    {phase:"act",tag:"ACT → tool call",text:"lookup_order(order_id=\"1234\")",mono:true,note:"<b>Iteration 1 · Act.</b> The model emits a structured tool call — not prose, a machine-readable request. This is Lesson 1's next-token prediction pointed at a function signature. The runtime now executes it."},
+    {phase:"observe",tag:"OBSERVE ← result",text:"{ status: \"delivered\", delivered_days_ago: 35, item: \"headphones\", condition: \"damaged\" }",mono:true,note:"<b>Iteration 1 · Observe.</b> The result is appended to the context window (memory accumulating). The agent now KNOWS something it didn't: delivered 35 days ago, and the item is damaged."},
+    {phase:"reason",tag:"REASON",text:"35 days is past the 30-day window — but the item is damaged, and damaged items follow a different rule. I need to check eligibility properly, not assume.",note:"<b>Iteration 2 · Reason.</b> The heart of ReAct: the next action is chosen <em>because of what was just observed</em>. The 'damaged' field changed the plan. A one-shot model would have answered 'too late' and been wrong."},
+    {phase:"act",tag:"ACT → tool call",text:"check_return_eligibility(order_id=\"1234\", reason=\"damaged\")",mono:true,note:"<b>Iteration 2 · Act.</b> A second tool call, informed by the first observation. The agent is chaining actions — each building on the last. This is what 'multi-step' really means."},
+    {phase:"observe",tag:"OBSERVE ← result",text:"{ eligible: true, path: \"damage_claim\", note: \"damaged items: 7 days from report, report was timely\" }",mono:true,note:"<b>Iteration 2 · Observe.</b> The result resolves the ambiguity: eligible via the damage-claim path. The agent now has everything — and decides THAT it has enough; the loop isn't a fixed length."},
+    {phase:"done",tag:"DONE → final answer",text:"Yes! Although it's past the standard 30-day window, your headphones qualify as a damage claim since you reported the damage in time. I'll route this to our claims team for a replacement.",note:"<b>Loop ends.</b> The model stopped calling tools and produced prose — the signal the loop is done. Reason→Act→Observe, twice, then finish. Two tool calls to answer one question, each chosen from live results. That feedback is the entire difference between a chatbot and an agent."},
+  ];
+  let step=0;
+  const PC={reason:'background:#FAEEDA;color:#633806',act:'background:#E1F5EE;color:#085041',observe:'background:#E6F1FB;color:#0C447C',done:'background:#EEEDFE;color:#3C3489;font-weight:600'};
+  const TC={reason:'background:#EF9F27;color:#412402',act:'background:#1D9E75;color:#04342C',observe:'background:#378ADD;color:#042C53',done:'background:#7F77DD;color:#26215C'};
+  function render(){
+    ['reason','act','observe'].forEach(p=>{document.getElementById('rl-p-'+p).style.cssText='flex:1;text-align:center;padding:8px 6px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--bs);background:var(--bg2);color:var(--tt)';});
+    if(step>0){const cur=STEPS[step-1].phase;
+      if(cur==='done'){['reason','act','observe'].forEach(p=>{document.getElementById('rl-p-'+p).style.cssText='flex:1;text-align:center;padding:8px 6px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid #534AB7;background:#EEEDFE;color:#3C3489';});}
+      else{const e=document.getElementById('rl-p-'+cur);const col=cur==='reason'?'#854F0B':cur==='act'?'#0F6E56':'#185FA5';const bg=cur==='reason'?'#FAEEDA':cur==='act'?'#E1F5EE':'#E6F1FB';e.style.cssText=`flex:1;text-align:center;padding:8px 6px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid ${col};background:${bg};color:${col}`;}
+    }
+    let html="";
+    for(let i=0;i<step;i++){const s=STEPS[i];html+=`<div style="padding:8px 11px;border-radius:7px;margin-bottom:7px;font-size:12.5px;line-height:1.5;${PC[s.phase]}"><span style="font-family:var(--mono);font-size:10px;font-weight:600;padding:1px 7px;border-radius:5px;margin-right:7px;${TC[s.phase]}">${s.tag}</span><span style="${s.mono?'font-family:var(--mono);font-size:11.5px':''}">${s.text}</span></div>`;}
+    if(step===0)html=`<div style="color:var(--tt);text-align:center;padding:70px 10px;font-size:13px">loop not started</div>`;
+    document.getElementById('rl-trace').innerHTML=html;
+    const tr=document.getElementById('rl-trace');tr.scrollTop=tr.scrollHeight;
+    let lbl;if(step===0)lbl="step 0 — not started";else if(STEPS[step-1].phase==="done")lbl="loop complete · 2 tool calls";else{const it=Math.floor((step-1)/3)+1;lbl=`iteration ${it} · ${STEPS[step-1].phase}`;}
+    document.getElementById('rl-iter').textContent=lbl;
+    document.getElementById('rl-note').innerHTML=step>0?STEPS[step-1].note:`Press "Next step" to start the loop. Watch how each action is chosen based on the previous observation.`;
+    document.getElementById('rl-next').style.opacity=step>=STEPS.length?.4:1;
+  }
+  document.getElementById('rl-next').addEventListener('click',()=>{if(step<STEPS.length){step++;render();}});
+  document.getElementById('rl-reset').addEventListener('click',()=>{step=0;render();});
+  render();
+})();
+
+/* 01 MECHANICS */
+(function(){
+  const root=document.getElementById('mech-root');
+  const CODE=[
+    {t:`messages = [user_message]`},{t:`<span style="color:#993C1D">while</span> True:`},
+    {t:`  response = model(messages)`,cm:"call the model"},
+    {t:`  <span style="color:#993C1D">if</span> response.stop_reason == <span style="color:#0F6E56">"tool_use"</span>:`,cm:"model wants a tool"},
+    {t:`    messages.append(response)`,cm:"keep the assistant turn"},
+    {t:`    results = run_tools(response.tool_calls)`,cm:"YOU execute them"},
+    {t:`    messages.append(results)`,cm:"echo tool_use_id"},
+    {t:`    <span style="color:#993C1D">continue</span>`,cm:"loop again"},
+    {t:`  <span style="color:#993C1D">else</span>:  <span style="color:var(--tt);font-style:italic"># end_turn</span>`,cm:"model is done"},
+    {t:`    <span style="color:#993C1D">return</span> response`,cm:"final answer"},
+  ];
+  const FLOW=[
+    {line:0,arr:[{c:'u',t:"user: Can I return order #1234?"}],note:"<b>Start.</b> The messages array holds just the user's request. This array IS the agent's memory — everything gets appended here (Lessons 2 &amp; 3)."},
+    {line:2,arr:[{c:'u',t:"user: Can I return order #1234?"}],note:"<b>Call the model.</b> You send the whole array. The model responds — but you don't know yet if it wants a tool or is answering. The next line decides everything."},
+    {line:3,arr:[{c:'u',t:"user: Can I return order #1234?"},{c:'a',t:"assistant: [reason] + lookup_order(1234)",sr:"tool"}],note:"<b>Check stop_reason.</b> It's <code>tool_use</code> — the model emitted a tool call, not a final answer. This branch fires. NEVER assume; always read this field."},
+    {line:4,arr:[{c:'u',t:"user: Can I return order #1234?"},{c:'a',t:"assistant: [reason] + lookup_order(1234)",sr:"tool"}],note:"<b>Append the assistant turn.</b> The model's response (including its tool-call request) goes into the array exactly as received."},
+    {line:5,arr:[{c:'u',t:"user: Can I return order #1234?"},{c:'a',t:"assistant: [reason] + lookup_order(1234)",sr:"tool"}],note:"<b>YOU run the tool.</b> The model can't execute anything (Lesson 1). Your runtime calls lookup_order and gets a result."},
+    {line:6,arr:[{c:'u',t:"user: Can I return order #1234?"},{c:'a',t:"assistant: [reason] + lookup_order(1234)",sr:"tool"},{c:'tool',t:"tool_result [id: toolu_01]: delivered 35d ago, damaged"}],note:"<b>Append the result — echoing the tool_use_id.</b> The result must carry the SAME id the model used (toolu_01). That's how the model knows which call this answers. Mismatch it and the API rejects the turn."},
+    {line:7,arr:"same",note:"<b>continue → loop.</b> Back to the top. The model is called again with the larger array — it sees its tool call AND the result, and reasons about the next move."},
+    {line:2,arr:[{c:'u',t:"user: Can I return order #1234?"},{c:'a',t:"assistant: ... lookup_order(1234)",sr:"tool"},{c:'tool',t:"tool_result: delivered 35d ago, damaged"},{c:'a',t:"assistant: [reason] + check_return_eligibility(...)",sr:"tool"},{c:'tool',t:"tool_result: eligible via damage_claim"}],note:"<b>Iteration 2 (compressed).</b> Same cycle: tool_use → append → run → append result → loop. The array keeps growing. Eventually the model has enough."},
+    {line:8,arr:[{c:'u',t:"user: Can I return order #1234?"},{c:'tool',t:"...prior tool calls and results..."},{c:'a',t:"assistant: Yes — it qualifies as a damage claim. Routing to claims.",sr:"end"}],note:"<b>stop_reason is now end_turn.</b> The model produced prose with no tool call — it's done. The else branch fires."},
+    {line:9,arr:"same",note:"<b>return → loop exits.</b> You hand the final answer back. The whole run was your code calling the model in a loop, with stop_reason steering every decision. That field is the steering wheel."},
+  ];
+  const MC={u:'background:#EEEDFE;color:#3C3489',a:'background:#E1F5EE;color:#085041',tool:'background:#E6F1FB;color:#0C447C'};
+  const SR={tool:'background:#1D9E75;color:#04342C',end:'background:#7F77DD;color:#26215C'};
+  const SRL={tool:'stop_reason: tool_use',end:'stop_reason: end_turn'};
+  let step=0;
+  function renderFlow(){
+    document.getElementById('lm-code').innerHTML=CODE.map((c,i)=>{const hot=step>0&&FLOW[step-1].line===i;return `<span style="padding:1px 8px;border-radius:5px;display:block;${hot?'background:#FAEEDA;color:#633806':'color:var(--ts)'}">${c.t}${c.cm&&hot?`  <span style="color:var(--tt);font-style:italic"># ${c.cm}</span>`:''}</span>`;}).join('');
+    let arr=step>0?FLOW[step-1].arr:[{c:'u',t:"user: Can I return order #1234?"}];if(arr==="same")arr=FLOW[step-2].arr;
+    if(step===0)document.getElementById('lm-arr').innerHTML=`<div style="color:var(--tt);text-align:center;padding:70px 10px">array empty</div>`;
+    else document.getElementById('lm-arr').innerHTML=arr.map(m=>`<div style="padding:6px 9px;border-radius:6px;margin-bottom:5px;line-height:1.4;${MC[m.c]}">${m.t}${m.sr?`<span style="font-family:var(--mono);font-size:9.5px;font-weight:600;padding:1px 6px;border-radius:4px;margin-left:6px;${SR[m.sr]}">${SRL[m.sr]}</span>`:''}</div>`).join('');
+    const a=document.getElementById('lm-arr');a.scrollTop=a.scrollHeight;
+    document.getElementById('lm-note').innerHTML=step>0?FLOW[step-1].note:`Press "Next step" to walk the loop.`;
+    document.getElementById('lm-next').style.opacity=step>=FLOW.length?.4:1;
+  }
+  document.getElementById('lm-next').addEventListener('click',()=>{if(step<FLOW.length){step++;renderFlow();}});
+  document.getElementById('lm-reset').addEventListener('click',()=>{step=0;renderFlow();});
+  let trapMode="naive";
+  function renderTrap(){
+    const arr=document.getElementById('lm-trap-arr'),note=document.getElementById('lm-trap-note');
+    if(trapMode==="naive"){
+      arr.innerHTML=`<div style="padding:6px 9px;border-radius:6px;margin-bottom:5px;background:#EEEDFE;color:#3C3489">user: Can I return order #1234?</div><div style="padding:6px 9px;border-radius:6px;margin-bottom:5px;background:#FAECE7;color:#712B13;box-shadow:0 0 0 1.5px #993C1D">assistant: [reason] + lookup_order(order_id="12 <span style="opacity:.6">⟵ CUT OFF</span><span style="font-family:var(--mono);font-size:9.5px;font-weight:600;padding:1px 6px;border-radius:4px;margin-left:6px;background:#D85A30;color:#3D1407">stop_reason: max_tokens</span></div><div style="padding:6px 9px;border-radius:6px;margin-bottom:5px;background:#FAECE7;color:#712B13;box-shadow:0 0 0 1.5px #993C1D">tool_result [id: ???]: — no valid id to echo —</div><div style="padding:6px 9px;border-radius:6px;background:#FAECE7;color:#993C1D;font-weight:600">✗ next model call → API error: incomplete tool_use / unmatched id</div>`;
+      note.className="read bad";note.innerHTML=`<b>The trap.</b> The model hit its token limit <em>mid-tool-call</em> — arguments truncated, no valid tool_use_id. Naive code only checks <code>if stop_reason == "tool_use"</code>, treats this like a normal turn, appends the broken block, and tries to run a tool that was never fully specified. The next call fails. This survives into production because it only triggers on long responses.`;
+    } else {
+      arr.innerHTML=`<div style="padding:6px 9px;border-radius:6px;margin-bottom:5px;background:#EEEDFE;color:#3C3489">user: Can I return order #1234?</div><div style="padding:6px 9px;border-radius:6px;margin-bottom:5px;background:#FAECE7;color:#712B13;box-shadow:0 0 0 1.5px #993C1D">assistant: [reason] + lookup_order(order_id="12 <span style="opacity:.6">⟵ CUT OFF</span><span style="font-family:var(--mono);font-size:9.5px;font-weight:600;padding:1px 6px;border-radius:4px;margin-left:6px;background:#D85A30;color:#3D1407">stop_reason: max_tokens</span></div><div style="padding:6px 9px;border-radius:6px;background:#E1F5EE;color:#0F6E56;font-weight:600">✓ detected max_tokens BEFORE appending → retry with higher limit / handle explicitly</div>`;
+      note.className="read good";note.innerHTML=`<b>The fix.</b> Check <code>stop_reason</code> for <code>"max_tokens"</code> <em>before</em> treating the response as a valid turn. A truncated response is not a real tool call — don't append it, don't execute it. Retry with a higher budget, or surface the truncation. <strong>stop_reason has more than two values; a robust loop handles every one.</strong>`;
+    }
+  }
+  function setTrap(m){trapMode=m;root.querySelectorAll('#lm-ttabs .segbtn').forEach(b=>{const on=b.dataset.t===m;b.classList.toggle('on',on);b.style.background=on?(m==='naive'?'#FAECE7':'#E1F5EE'):'';b.style.borderColor=on?(m==='naive'?'#993C1D':'#0F6E56'):'';b.style.color=on?(m==='naive'?'#712B13':'#085041'):'';});renderTrap();}
+  function setMode(m){root.querySelectorAll('#lm-tabs .segbtn').forEach(b=>{const on=b.dataset.m===m;b.classList.toggle('on',on);b.style.background=on?'#EEEDFE':'';b.style.borderColor=on?'#534AB7':'';b.style.color=on?'#3C3489':'';});document.getElementById('lm-flow').classList.toggle('on',m==='flow');document.getElementById('lm-trap').classList.toggle('on',m==='trap');}
+  root.querySelectorAll('#lm-tabs .segbtn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+  root.querySelectorAll('#lm-ttabs .segbtn').forEach(b=>b.addEventListener('click',()=>setTrap(b.dataset.t)));
+  setMode('flow');renderFlow();setTrap('naive');
+})();
+
+/* 02 TOOLS */
+(function(){
+  const root=document.getElementById('tool-root');
+  const TOOLS={
+    vague:[{name:"lookup_order",desc:"Gets order info.",match:55},{name:"search_knowledge_base",desc:"Searches stuff for answers.",match:58},{name:"create_support_ticket",desc:"Makes a ticket.",match:30}],
+    precise:[{name:"lookup_order",desc:"Retrieve the live shipping status, delivery date, and contents of ONE specific order by its order ID. Use when the user asks where their order is.",match:94},{name:"search_knowledge_base",desc:"Search general help articles and policies for how-to questions. Does NOT have access to specific customer orders.",match:22},{name:"create_support_ticket",desc:"Escalate an unresolved issue to a human agent. Use only after other tools cannot resolve the request.",match:12}],
+  };
+  let qmode="precise";
+  function renderDesc(){
+    const tools=TOOLS[qmode],top=tools.reduce((a,b)=>b.match>a.match?b:a,tools[0]),pc=top.name==="lookup_order";
+    document.getElementById('td-tools').innerHTML=tools.map(t=>{const isTop=t.name===top.name,col=t.match>=70?'#0F6E56':t.match>=45?'#854F0B':'#993C1D',bd=isTop?(pc?'2px solid #0F6E56':'2px solid #993C1D'):'1px solid var(--bt)',bg=isTop?(pc?'#E1F5EE':'#FAECE7'):'var(--bg)';return `<div style="border:${bd};border-radius:8px;padding:11px 13px;margin-bottom:8px;background:${bg}"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--tp);display:flex;align-items:center;gap:8px">${t.name}${isTop?`<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:5px;background:${pc?'#E1F5EE':'#FAECE7'};color:${pc?'#0F6E56':'#993C1D'}">${pc?'✓ MODEL PICKS THIS':'✗ MODEL PICKS THIS'}</span>`:''}</div><div style="font-size:12px;color:var(--ts);margin-top:4px;line-height:1.45">"${t.desc}"</div><div style="display:flex;align-items:center;gap:8px;margin-top:8px"><span style="font-size:11px;color:var(--tt)">match</span><div style="flex:1;height:7px;background:var(--bg2);border-radius:4px;overflow:hidden;max-width:160px"><div style="height:100%;border-radius:4px;width:${t.match}%;background:${col}"></div></div><span style="font-family:var(--mono);font-size:11px;font-weight:600;color:${col}">${t.match}%</span></div></div>`;}).join('');
+    const note=document.getElementById('td-desc-note');
+    if(qmode==="vague"){note.className="read bad";note.innerHTML=`With vague descriptions, <code>lookup_order</code> ("gets order info") and <code>search_knowledge_base</code> ("searches stuff") look almost identical — and the model picks the WRONG one. It searches help articles for order #5582, finds nothing, fails. <strong>The bug isn't in the code — it's in the description.</strong>`;}
+    else{note.className="read good";note.innerHTML=`With precise descriptions, the choice is obvious. <code>lookup_order</code> retrieves a specific order by ID — exact match. <code>search_knowledge_base</code> explicitly states it does NOT access orders, so the model rules it out. <strong>Naming what a tool does AND does not do makes selection reliable.</strong>`;}
+  }
+  function setQ(m){qmode=m;root.querySelectorAll('#td-qtabs .segbtn').forEach(b=>{const on=b.dataset.q===m;b.classList.toggle('on',on);b.style.background=on?(m==='vague'?'#FAECE7':'#E1F5EE'):'';b.style.borderColor=on?(m==='vague'?'#993C1D':'#0F6E56'):'';b.style.color=on?(m==='vague'?'#712B13':'#085041'):'';});renderDesc();}
+  const SCHEMA=[
+    {id:"name",txt:`<span style="color:#534AB7">"name"</span>: <span style="color:#0F6E56">"lookup_order"</span>,`,title:"name",body:"A clear, verb-based identifier the model reads first. <strong>lookup_order</strong> signals action and domain instantly — far better than <strong>handler_v2</strong>. Name tools like good functions."},
+    {id:"desc",txt:`<span style="color:#534AB7">"description"</span>: <span style="color:#0F6E56">"Retrieve status of one order by ID..."</span>,`,title:"description",body:"The decision signal. This is where the model decides <em>whether</em> to call this tool at all. Spell out when to use it — and when not to. The highest-leverage field."},
+    {id:"param",txt:`<span style="color:#534AB7">"parameters"</span>: {`,title:"parameters (schema)",body:"A JSON Schema describing the arguments the model fills in. Types, requirements, and descriptions here make the arguments come back correct and parseable — like the output-format rules in Lesson 2."},
+    {id:"type",txt:`&nbsp;&nbsp;<span style="color:#534AB7">"order_id"</span>: { <span style="color:#534AB7">"type"</span>: <span style="color:#0F6E56">"string"</span>,`,title:"parameter type",body:"The type constrains what the model emits. For fixed choices, use an <strong>enum</strong> (reason: ['damaged','wrong_item','changed_mind']) — turning a free-text guess into a guaranteed-valid value."},
+    {id:"pdesc",txt:`&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#534AB7">"description"</span>: <span style="color:#0F6E56">"The order ID, e.g. '5582'"</span> },`,title:"parameter description",body:"Each parameter gets its own description — and an EXAMPLE. 'The order ID, e.g. 5582' tells the model exactly what to extract and in what format. Skip it and the model guesses, producing malformed arguments."},
+    {id:"req",txt:`&nbsp;&nbsp;<span style="color:#534AB7">"required"</span>: [<span style="color:#0F6E56">"order_id"</span>] }`,title:"required fields",body:"Marking <strong>order_id</strong> required tells the model it MUST obtain this before calling. If the user hasn't given an ID, a good agent ASKS rather than calling with a missing argument. Required-field logic shapes the conversation."},
+  ];
+  let sel="name";
+  function renderSchema(){
+    document.getElementById('td-schema-code').innerHTML=SCHEMA.map(s=>`<div data-id="${s.id}" style="padding:4px 8px;border-radius:5px;margin-bottom:3px;cursor:pointer;${s.id===sel?'background:#FAEEDA;color:#633806':'color:var(--ts)'}">${s.txt}</div>`).join('');
+    const s=SCHEMA.find(x=>x.id===sel);document.getElementById('td-schema-side').innerHTML=`<div style="font-family:var(--mono);font-size:12px;color:#534AB7;margin-bottom:8px">${s.title}</div><span style="color:var(--ts)">${s.body}</span>`;
+  }
+  document.getElementById('td-schema-code').addEventListener('click',e=>{const el=e.target.closest('[data-id]');if(!el)return;sel=el.dataset.id;renderSchema();});
+  function setMode(m){root.querySelectorAll('#td-tabs .segbtn').forEach(b=>{const on=b.dataset.m===m;b.classList.toggle('on',on);b.style.background=on?'#EEEDFE':'';b.style.borderColor=on?'#534AB7':'';b.style.color=on?'#3C3489':'';});document.getElementById('td-desc').classList.toggle('on',m==='desc');document.getElementById('td-schema-panel').classList.toggle('on',m==='schema');}
+  root.querySelectorAll('#td-tabs .segbtn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+  root.querySelectorAll('#td-qtabs .segbtn').forEach(b=>b.addEventListener('click',()=>setQ(b.dataset.q)));
+  setMode('desc');setQ('precise');renderSchema();
+})();
+
+/* 03 MULTI-AGENT */
+(function(){
+  const C={agentBg:"#EEEDFE",agent:"#534AB7",orchBg:"#FAEEDA",orch:"#854F0B",workBg:"#E1F5EE",work:"#0F6E56",critBg:"#FAECE7",crit:"#993C1D",flow:"#378ADD"};
+  function box(x,y,w,h,label,fill,stroke,sub){let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="9" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/><text x="${x+w/2}" y="${y+h/2+(sub?-3:4)}" text-anchor="middle" style="font-size:12px;font-weight:500;fill:${stroke}">${label}</text>`;if(sub)s+=`<text x="${x+w/2}" y="${y+h/2+12}" text-anchor="middle" style="font-size:9.5px;fill:${stroke};opacity:.8">${sub}</text>`;return s;}
+  function arrow(x1,y1,x2,y2,label){let s=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${C.flow}" stroke-width="2" marker-end="url(#maA)"/>`;if(label)s+=`<text x="${(x1+x2)/2}" y="${(y1+y2)/2-6}" text-anchor="middle" style="font-size:10px;fill:${C.flow}">${label}</text>`;return s;}
+  const DEFS=`<defs><marker id="maA" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="${C.flow}"/></marker></defs>`;
+  const P=[
+    {id:"single",name:"Single agent",sub:"one loop, one tool belt",color:C.agent,bg:C.agentBg,title:"Single agent",tagline:"One ReAct loop with a set of tools. The default — and the right answer more often than people expect.",
+     svg:()=>DEFS+box(60,75,130,50,"Agent",C.agentBg,C.agent,"reason · act · observe")+box(320,55,90,30,"tool A",C.workBg,C.work)+box(320,95,90,30,"tool B",C.workBg,C.work)+box(320,135,90,30,"tool C",C.workBg,C.work)+arrow(190,90,320,70)+arrow(190,100,320,110)+arrow(190,110,320,150)+box(490,75,110,50,"answer",C.agentBg,C.agent),
+     when:"The task fits in one context window and one agent's tool belt. A support agent, a coding assistant, a research helper.",why:"No coordination overhead, no extra latency, easiest to debug. Every additional agent multiplies cost, latency, and failure modes.",rule:"Start here. Only reach for multi-agent when a single agent provably can't handle the task."},
+    {id:"pipeline",name:"Pipeline",sub:"sequential · dependent",color:C.flow,bg:"#E6F1FB",title:"Pipeline (sequential)",tagline:"Agents in a chain — each one's output is the next one's input. Use when steps DEPEND on each other.",
+     svg:()=>DEFS+box(40,75,120,50,"Researcher",C.workBg,C.work,"gathers facts")+box(270,75,120,50,"Writer",C.orchBg,C.orch,"drafts copy")+box(500,75,120,50,"Editor",C.critBg,C.crit,"polishes")+arrow(160,100,270,100,"facts")+arrow(390,100,500,100,"draft"),
+     when:"The output of step N is required input for step N+1. Research → write → edit. Order is mandatory.",why:"Each agent is specialised and simple. The dependency means you CAN'T parallelise — the writer needs the researcher's facts first.",rule:"Use when there's a true dependency chain. The cost is latency: stages run one after another, so total time is the sum."},
+    {id:"orchestrator",name:"Orchestrator",sub:"parallel · independent",color:C.orch,bg:C.orchBg,title:"Orchestrator → workers",tagline:"A coordinator splits the task into INDEPENDENT subtasks, runs specialist workers in parallel, then synthesises.",
+     svg:()=>DEFS+box(270,20,120,42,"Orchestrator",C.orchBg,C.orch,"plans + merges")+box(40,120,110,42,"Flights",C.workBg,C.work)+box(275,120,110,42,"Hotels",C.workBg,C.work)+box(510,120,110,42,"Weather",C.workBg,C.work)+arrow(300,62,150,120)+arrow(330,62,330,120)+arrow(360,62,560,120)+arrow(150,162,300,180)+arrow(330,162,330,180)+arrow(560,162,360,180)+`<text x="330" y="195" text-anchor="middle" style="font-size:10px;fill:${C.orch}">results merged back to orchestrator</text>`,
+     when:"The task breaks into subtasks that DON'T depend on each other. Planning a trip: flights, hotels, weather fetched at once.",why:"Parallelism cuts latency — workers run simultaneously, so total time is the SLOWEST worker, not the sum. Each is a focused specialist.",rule:"Use when subtasks are independent. The workhorse pattern for complex tasks — parallel speed plus specialist focus."},
+    {id:"debate",name:"Debate / critic",sub:"verification",color:C.crit,bg:C.critBg,title:"Generator ⇄ Critic",tagline:"One agent produces, another critiques, the first revises. Use when CORRECTNESS matters more than speed.",
+     svg:()=>DEFS+box(90,75,140,50,"Generator",C.workBg,C.work,"produces answer")+box(430,75,140,50,"Critic",C.critBg,C.crit,"finds flaws")+arrow(230,90,430,90,"draft answer")+`<line x1="430" y1="112" x2="230" y2="112" stroke="${C.crit}" stroke-width="2" marker-end="url(#maA)" stroke-dasharray="4 3"/><text x="330" y="128" text-anchor="middle" style="font-size:10px;fill:${C.crit}">critique → revise (repeat)</text>`,
+     when:"High-stakes output where a second perspective catches errors: code review, legal/medical reasoning, security analysis.",why:"A dedicated critic with a 'find what's wrong' prompt catches mistakes the generator is blind to — separating creation from evaluation.",rule:"Use when an error is costly and worth extra calls to catch. The cost is more latency and tokens per answer."},
+  ];
+  let active="single";
+  function tabs(){document.getElementById('ma-tabs').innerHTML=P.map(p=>`<div data-id="${p.id}" style="flex:1;min-width:120px;padding:9px 8px;font-size:12.5px;text-align:center;border:1px solid ${p.id===active?p.color:'var(--bs)'};border-radius:8px;cursor:pointer;background:${p.id===active?p.bg:'var(--bg2)'};color:${p.id===active?p.color:'var(--ts)'};${p.id===active?'font-weight:600':''}">${p.name}<span style="font-size:10px;display:block;margin-top:2px;opacity:.8">${p.sub}</span></div>`).join('');}
+  function render(){const p=P.find(x=>x.id===active);document.getElementById('ma-title').textContent=p.title;document.getElementById('ma-title').style.color=p.color;document.getElementById('ma-tagline').textContent=p.tagline;document.getElementById('ma-svg').innerHTML=p.svg();const d=document.getElementById('ma-detail');d.style.background=p.bg;d.innerHTML=`<div style="margin-bottom:9px"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;color:${p.color}">Use when</div><div style="color:var(--tp)">${p.when}</div></div><div style="margin-bottom:9px"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;color:${p.color}">Why it works</div><div style="color:var(--ts)">${p.why}</div></div><div><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;color:${p.color}">The rule</div><div style="color:var(--ts)">${p.rule}</div></div>`;}
+  document.getElementById('ma-tabs').addEventListener('click',e=>{const el=e.target.closest('[data-id]');if(!el)return;active=el.dataset.id;tabs();render();});
+  tabs();render();
+})();
+
+/* 04 CODING */
+(function(){
+  const root=document.getElementById('coding-root');
+  const STEPS=[
+    {type:"reason",tag:"REASON",text:"I need to find where the checkout total is computed. I'll search the codebase for the calculation.",note:"<b>Reason.</b> The agent doesn't open files at random — it plans a search. Same first move as any ReAct loop."},
+    {type:"cmd",cmd:`grep -rn "def calculate_total" .`,out:`./cart.py:42:<span style="color:#D85A30">def calculate_total(items):</span>`,note:"<b>Act → grep.</b> The agent searches instead of guessing. <code>grep</code> is how it navigates a repo too large to fit in context — RAG-like retrieval over a filesystem (Lesson 3)."},
+    {type:"cmd",cmd:`read cart.py:38-48`,out:`38  def calculate_total(items):\n39      total = 0\n40      for item in items:\n41          <span style="color:#D85A30">total += item.price</span>   # bug: ignores quantity\n42      return total`,note:"<b>Act → read, then Observe.</b> The agent reads the function and SEES the bug: it adds <code>item.price</code> but never multiplies by <code>quantity</code>. The observation is concrete — the code is right there."},
+    {type:"reason",tag:"REASON",text:"Found it. Line 41 adds price but ignores quantity. I'll change it to multiply price by quantity.",note:"<b>Reason.</b> The fix is decided from what was observed — feedback-driven decision, now on code."},
+    {type:"cmd",cmd:`edit cart.py: "total += item.price" → "total += item.price * item.quantity"`,out:`<span style="color:#5DCAA5">✓ edited cart.py (1 change)</span>`,note:"<b>Act → edit.</b> A precise string replacement — change exactly the buggy line. But the agent doesn't trust itself yet; it must verify."},
+    {type:"cmd",cmd:`run pytest tests/test_cart.py`,out:`<span style="color:#D85A30">FAILED</span> test_total_with_quantity — stale test\n<span style="color:#5DCAA5">PASSED</span> test_total_basic`,note:"<b>Act → run, then Observe.</b> Coding's superpower: a VERIFIABLE result. The test suite objectively says whether the fix worked. One test still fails, so the loop continues."},
+    {type:"reason",tag:"REASON",text:"That failure is a stale test asserting the old buggy behavior. I'll update it to expect the correct total, then re-run.",note:"<b>Reason.</b> The agent interprets the failure — distinguishing a real regression from a test that encoded the bug. Next action chosen from the test output."},
+    {type:"cmd",cmd:`edit tests/test_cart.py + run pytest`,out:`<span style="color:#5DCAA5">PASSED</span> test_total_basic\n<span style="color:#5DCAA5">PASSED</span> test_total_with_quantity\n<span style="color:#5DCAA5">3 passed in 0.12s</span>`,note:"<b>Act → run, Observe.</b> All tests green. Objective proof the task is complete — something most agent domains never get. This is why coding agents can run autonomously for many steps."},
+    {type:"done",tag:"DONE",text:"Fixed: calculate_total now multiplies price by quantity. Updated the stale test. All 3 tests pass.",note:"<b>Loop ends.</b> Identical shape to the support-agent loop — reason, act, observe, repeat — but every observation came from a real tool on a real environment, and the final check was objective. grep → read → edit → run is the whole game."},
+  ];
+  let step=0;
+  function renderLoop(){
+    let html="";
+    for(let i=0;i<step;i++){const s=STEPS[i];
+      if(s.type==="reason")html+=`<div style="margin-bottom:9px;color:#EF9F27"><span style="font-size:9.5px;font-weight:600;padding:1px 6px;border-radius:4px;margin-right:7px;background:#854F0B;color:#FAEEDA">${s.tag}</span>${s.text}</div>`;
+      else if(s.type==="cmd")html+=`<div style="margin-bottom:9px"><div style="color:#5DCAA5"><span style="color:#7F77DD">$</span> ${s.cmd}</div><div style="color:#a8a59d;white-space:pre-wrap;padding-left:10px;border-left:2px solid #3a3833;margin-top:3px">${s.out}</div></div>`;
+      else if(s.type==="done")html+=`<div style="margin-bottom:9px;color:#7F77DD;font-weight:600"><span style="font-size:9.5px;font-weight:600;padding:1px 6px;border-radius:4px;margin-right:7px;background:#534AB7;color:#EEEDFE">${s.tag}</span>${s.text}</div>`;
+    }
+    if(step===0)html=`<div style="color:#6a675f;text-align:center;padding:80px 10px">$ agent ready — press Next step</div>`;
+    document.getElementById('ca-trace').innerHTML=html;const tr=document.getElementById('ca-trace');tr.scrollTop=tr.scrollHeight;
+    document.getElementById('ca-iter').textContent=step===0?"not started":step>=STEPS.length?"task complete · grep→read→edit→run":`step ${step} of ${STEPS.length}`;
+    document.getElementById('ca-note').innerHTML=step>0?STEPS[step-1].note:`Press "Next step". Watch the tools: grep to find, read to understand, edit to change, run to verify.`;
+    document.getElementById('ca-next').style.opacity=step>=STEPS.length?.4:1;
+  }
+  document.getElementById('ca-next').addEventListener('click',()=>{if(step<STEPS.length){step++;renderLoop();}});
+  document.getElementById('ca-reset').addEventListener('click',()=>{step=0;renderLoop();});
+  const PROPS=[
+    {id:"verify",icon:"ti-checks",color:"#0F6E56",bg:"#E1F5EE",title:"Verifiable feedback",body:"Code compiles or it doesn't. Tests pass or fail. The agent gets an <strong>objective, automatic signal</strong> about whether its action worked — no human to judge. This is the big one: most agent domains have no ground truth. A coding agent can act, run the tests, and KNOW if it succeeded — which is what lets it loop autonomously for dozens of steps without drifting."},
+    {id:"observe",icon:"ti-eye",color:"#185FA5",bg:"#E6F1FB",title:"Fully observable state",body:"The whole environment — filesystem, code, test output, error traces — is <strong>readable text the agent inspects directly</strong>. No hidden state to guess about. grep and read give perfect visibility into a repo far larger than any context window (retrieval over a filesystem, like RAG in Lesson 3)."},
+    {id:"revert",icon:"ti-arrow-back-up",color:"#854F0B",bg:"#FAEEDA",title:"Reversible actions",body:"Version control makes mistakes <strong>cheap and undoable</strong> — a bad edit is one <code>git checkout</code> from gone. This lowers the risk of autonomous action: the agent can experiment, and anything it breaks rolls back. Compare an agent that sends an email or issues a refund — irreversible, which is why those need guardrails and human approval (Lesson 7)."},
+  ];
+  let prop="verify";
+  function renderProps(){
+    document.getElementById('ca-props').innerHTML=PROPS.map(p=>`<div data-id="${p.id}" style="border:${p.id===prop?'2px':'1px'} solid ${p.id===prop?p.color:'var(--bt)'};border-radius:8px;padding:13px 15px;cursor:pointer;background:var(--bg)"><div style="font-size:14px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:9px"><span style="width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;background:${p.bg};color:${p.color}"><i class="ti ${p.icon}" aria-hidden="true"></i></span><span style="color:${p.color}">${p.title}</span></div>${p.id===prop?`<div style="font-size:12.5px;color:var(--ts);line-height:1.6">${p.body}</div>`:''}</div>`).join('');
+    const p=PROPS.find(x=>x.id===prop);document.getElementById('ca-why-note').innerHTML=`<strong>The pattern:</strong> coding gives an agent a tight loop — act, get objective feedback, correct, repeat — over a fully visible, reversible environment. That's the ideal habitat for ReAct. As other domains gain these properties (sandboxes, simulators, verifiable checks), agents break through there too. ${p.id==='verify'?'<strong>Verifiable feedback is the property that matters most.</strong>':''}`;
+  }
+  document.getElementById('ca-props').addEventListener('click',e=>{const el=e.target.closest('[data-id]');if(!el)return;prop=el.dataset.id;renderProps();});
+  function setMode(m){root.querySelectorAll('#ca-tabs .segbtn').forEach(b=>{const on=b.dataset.m===m;b.classList.toggle('on',on);b.style.background=on?'#EEEDFE':'';b.style.borderColor=on?'#534AB7':'';b.style.color=on?'#3C3489':'';});document.getElementById('ca-loop').classList.toggle('on',m==='loop');document.getElementById('ca-why').classList.toggle('on',m==='why');}
+  root.querySelectorAll('#ca-tabs .segbtn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+  setMode('loop');renderLoop();renderProps();
+})();
+</script>
+</body>
+</html>

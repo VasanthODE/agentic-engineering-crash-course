@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 6 · AI Gateways</title>
+<style>
+  :root{
+    --bg:#FBFAF7; --bg2:#F2F0E9; --bg3:#E9E6DC;
+    --bt:#E7E4DA; --bs:#D5D2C8;
+    --tp:#1b1a18; --ts:#55534d; --tt:#8d8a82;
+    --p:#534AB7; --pl:#7F77DD; --pbg:#EEEDFE; --pink:#3C3489;
+    --t:#0F6E56; --tl:#1D9E75; --tbg:#E1F5EE; --tdk:#085041;
+    --a:#854F0B; --al:#EF9F27; --abg:#FAEEDA; --adk:#633806;
+    --c:#993C1D; --cl:#D85A30; --cbg:#FAECE7; --cdk:#712B13;
+    --b:#185FA5; --bl:#378ADD; --bbg:#E6F1FB; --bdk:#0C447C;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--tp);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--pbg);color:var(--pink)}
+  .shell{max-width:1080px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:240px 1fr;gap:36px}
+  @media(max-width:880px){.shell{grid-template-columns:1fr;gap:0}.spine{display:none}}
+
+  .hero{grid-column:1/-1;padding:5rem 0 2.5rem;border-bottom:1px solid var(--bt)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--pl);margin-bottom:1.2rem}
+  .hero h1{font-size:clamp(2.4rem,5.5vw,3.8rem);line-height:1.02;letter-spacing:-.03em;font-weight:680;margin:0 0 1.1rem;max-width:15ch}
+  .hero h1 em{font-style:normal;color:var(--p)}
+  .hero p{font-size:1.12rem;color:var(--ts);max-width:58ch;margin:0}
+  .hero .meta{margin-top:2rem;display:flex;gap:28px;flex-wrap:wrap;font-family:var(--mono);font-size:12.5px;color:var(--tt)}
+  .hero .meta b{color:var(--tp);font-weight:600}
+
+  .spine{position:sticky;top:0;align-self:start;height:100vh;padding-top:3rem;overflow:hidden}
+  .spine-cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tt);margin:0 0 16px 4px}
+  .spine-inner{position:relative;padding-left:26px}
+  .spine-rail{position:absolute;left:7px;top:8px;bottom:30px;width:2px;background:linear-gradient(var(--p),var(--bl),var(--cl),var(--al),var(--tl));border-radius:2px;opacity:.4}
+  .spine a{display:block;position:relative;padding:8px 0;text-decoration:none;line-height:1.25;transition:all .2s}
+  .spine a .nm{font-size:13px;color:var(--ts)}
+  .spine a .ph{font-family:var(--mono);font-size:10px;color:var(--tt);display:block;margin-top:1px}
+  .spine a::before{content:"";position:absolute;left:-26px;top:11px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:2px solid var(--bs);transition:all .25s}
+  .spine a:hover .nm{color:var(--tp)}
+  .spine a.on .nm{color:var(--tp);font-weight:600}
+  .spine a.on::before{background:var(--p);border-color:var(--p);box-shadow:0 0 0 4px var(--pbg)}
+  .spine-foot{margin-top:18px;padding-left:4px;font-family:var(--mono);font-size:10px;color:var(--pl);line-height:1.5;max-width:20ch}
+
+  main{padding-top:2rem;padding-bottom:6rem;min-width:0}
+  section{padding:2.6rem 0;border-bottom:1px solid var(--bt);scroll-margin-top:20px}
+  section:last-child{border-bottom:none}
+  .sec-eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pl);margin-bottom:.7rem;display:flex;align-items:center;gap:9px}
+  .sec-eyebrow .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--pbg);color:var(--pink);font-size:11px;font-weight:600}
+  h2{font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.02em;line-height:1.1;font-weight:660;margin:0 0 .9rem}
+  .lead{font-size:1.05rem;color:var(--ts);max-width:62ch;margin:0 0 1.5rem}
+  .lead strong{color:var(--tp);font-weight:620}
+  .takeaway{margin-top:1.4rem;padding:13px 16px;border-radius:10px;font-size:13.5px;line-height:1.65;background:var(--pbg);color:var(--pink);border-left:3px solid var(--p)}
+  .takeaway b{font-weight:650}
+
+  .hint{font-size:13px;color:var(--ts);margin-bottom:10px}
+  .label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--tt);margin:0 0 6px;font-weight:600}
+  .card{background:var(--bg);border:1px solid var(--bt);border-radius:12px;padding:14px}
+  .mono{font-family:var(--mono)}
+  svg{display:block;max-width:100%}
+  .btn{display:inline-block;padding:7px 15px;font-size:13px;border:1px solid var(--p);border-radius:8px;cursor:pointer;background:var(--pbg);color:var(--pink);font-weight:600;user-select:none}
+  .btn:hover{filter:brightness(.97)}
+  .btn.sec{border-color:var(--bs);background:var(--bg2);color:var(--tp);font-weight:400}
+  .seg{display:flex;gap:6px;margin-bottom:14px}
+  .segbtn{flex:1;padding:8px 10px;font-size:13px;text-align:center;border:1px solid var(--bs);border-radius:8px;cursor:pointer;background:var(--bg2);color:var(--ts);transition:all .15s;user-select:none}
+  .segbtn.on{font-weight:600}
+  .read{margin-top:14px;padding:12px 15px;border-radius:8px;font-size:13px;line-height:1.65}
+  .read.p{background:var(--pbg);color:var(--pink);border-left:3px solid var(--p)}
+  .read.bad{background:var(--cbg);color:var(--cdk);border-left:3px solid var(--c)}
+  .read.good{background:var(--tbg);color:var(--tdk);border-left:3px solid var(--t)}
+  .read.a{background:var(--abg);color:var(--adk);border-left:3px solid var(--a)}
+  .read.info{background:var(--pbg);color:var(--pink);border-left:3px solid var(--p)}
+  .panel{display:none}.panel.on{display:block}
+  .sliderrow{display:flex;align-items:center;gap:12px;margin:10px 0}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;background:var(--bg3);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--p);cursor:pointer;border:2px solid var(--bg)}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--p);cursor:pointer;border:2px solid var(--bg)}
+  code{font-family:var(--mono);font-size:.92em;background:var(--bg2);padding:1px 5px;border-radius:4px}
+
+  .footer{grid-column:1/-1;padding:3rem 0 4rem;text-align:center;color:var(--tt);font-size:13px;font-family:var(--mono)}
+  .footer .chain{color:var(--ts);font-family:var(--sans);font-size:14px;line-height:1.9;max-width:64ch;margin:0 auto 1.5rem}
+  .footer .chain b{color:var(--p);font-weight:600}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="hero">
+    <div class="eyebrow">AI Agent Engineering · Lesson 6</div>
+    <h1>AI <em>gateways</em></h1>
+    <p>Your agent talks directly to one model from one provider. In production that's fragile and expensive. A gateway is a single control point between your app and the providers — and because every request flows through it, you control everything from one place.</p>
+    <div class="meta">
+      <span>the <b>chokepoint</b> is the leverage</span>
+      <span><b>5</b> interactive demos</span>
+      <span>read order: <b>top to bottom</b></span>
+    </div>
+  </header>
+
+  <nav class="spine">
+    <div class="spine-cap">one control point</div>
+    <div class="spine-inner">
+      <div class="spine-rail"></div>
+      <a href="#control" data-sec="control"><span class="nm">The control point</span><span class="ph">why a gateway</span></a>
+      <a href="#routing" data-sec="routing"><span class="nm">Model routing</span><span class="ph">right-sized, not best</span></a>
+      <a href="#fallbacks" data-sec="fallbacks"><span class="nm">Fallbacks</span><span class="ph">survive provider failure</span></a>
+      <a href="#cost" data-sec="cost"><span class="nm">Cost control</span><span class="ph">see · attribute · cap</span></a>
+      <a href="#rate" data-sec="rate"><span class="nm">Rate limiting</span><span class="ph">shape the bursts</span></a>
+      <div class="spine-foot">▼ every request<br>funnels through<br>one place</div>
+    </div>
+  </nav>
+
+  <main>
+
+  <!-- 00 CONTROL POINT -->
+  <section id="control">
+    <div class="sec-eyebrow"><span class="n">01</span> Why a gateway</div>
+    <h2>The single control point</h2>
+    <p class="lead">Talking directly to providers means all the operational logic — routing, retries, cost, rate limits, keys — lives tangled inside your app. A gateway pulls it into one place every request flows through.</p>
+    <div id="ctrl-root">
+      <div class="seg" id="gw-seg">
+        <div class="segbtn on" data-m="without">Without a gateway</div>
+        <div class="segbtn" data-m="with">With a gateway</div>
+      </div>
+      <div class="hint" id="gw-hint"></div>
+      <svg viewBox="0 0 680 290" role="img" aria-label="Application connecting to model providers"><g id="gw-viz"></g></svg>
+      <div class="read" id="gw-note"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:14px" id="gw-funcs"></div>
+    </div>
+    <div class="takeaway"><b>The chokepoint is the leverage.</b> A gateway isn't a model and isn't smart — its power comes purely from its POSITION in the request path. Same pattern as an API gateway or load balancer, specialized for the cost and failure modes of LLM traffic.</div>
+  </section>
+
+  <!-- 01 ROUTING -->
+  <section id="routing">
+    <div class="sec-eyebrow"><span class="n">02</span> Highest-value function</div>
+    <h2>Model routing</h2>
+    <p class="lead">"Always use the most powerful model" is wrong on <strong>both</strong> axes — cost and quality. Route each request to the right-<em>sized</em> model: a smaller one is often faster and good enough, and ~18× cheaper.</p>
+    <div id="rout-root">
+      <div class="seg" id="mr-seg">
+        <div class="segbtn on" data-m="ladder">The model ladder</div>
+        <div class="segbtn" data-m="router">The router in action</div>
+      </div>
+      <div class="panel on" id="mr-ladder">
+        <div class="hint">Three tiers, very different costs (per million tokens, input / output — illustrative). Bars show relative output price:</div>
+        <div id="mr-tiers"></div>
+        <div class="read info" id="mr-ladder-note"></div>
+      </div>
+      <div class="panel" id="mr-router">
+        <div class="hint">A stream of real requests of differing complexity. Route each to the right-sized model and compare the bill:</div>
+        <div id="mr-reqs"></div>
+        <div style="text-align:center"><span class="btn" id="mr-route" style="margin-top:6px">▶ Route each request</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px" id="mr-compare">
+          <div class="card" style="text-align:center;padding:11px;background:var(--bg2)"><div style="font-size:11px;color:var(--tt);margin-bottom:3px">All-Opus (naive)</div><div style="font-size:18px;font-weight:600" id="mr-cmp-opus" style="color:var(--c)">—</div></div>
+          <div class="card" style="text-align:center;padding:11px;background:var(--bg2)"><div style="font-size:11px;color:var(--tt);margin-bottom:3px">Smart routing</div><div style="font-size:18px;font-weight:600" id="mr-cmp-route">—</div></div>
+          <div class="card" style="text-align:center;padding:11px;background:var(--bg2)"><div style="font-size:11px;color:var(--tt);margin-bottom:3px">Saved</div><div style="font-size:18px;font-weight:600" id="mr-cmp-saved">—</div></div>
+        </div>
+        <div class="read good" id="mr-router-note" style="display:none"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Pick the right-sized model, not the best one.</b> Decide by complexity (rule-based like your production agent's ModelRouter, or a cheap classifier model), and also by capability, availability, and policy. Across millions of calls, routing is the biggest lever on the bill.</div>
+  </section>
+
+  <!-- 02 FALLBACKS -->
+  <section id="fallbacks">
+    <div class="sec-eyebrow"><span class="n">03</span> Survivability</div>
+    <h2>Fallbacks &amp; reliability</h2>
+    <p class="lead">Routing picks the best model — useless if it's down. The gateway makes a flaky dependency look reliable: it catches failures, retries with backoff, and fails over to another provider, all invisible to your app.</p>
+    <div id="fall-root">
+      <div class="seg" id="fb-seg">
+        <div class="segbtn on" data-m="chain">The fallback chain</div>
+        <div class="segbtn" data-m="match">Match response to failure</div>
+      </div>
+      <div class="panel on" id="fb-chain">
+        <div class="hint">Your app sent ONE request to the gateway. The primary model fails — watch the gateway recover without your app ever knowing:</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <span class="btn" id="fb-next">▶ Next step</span>
+          <span class="btn sec" id="fb-reset">Reset</span>
+          <span style="font-size:12px;color:var(--tt);font-family:var(--mono)" id="fb-status">app waiting…</span>
+        </div>
+        <div class="card" id="fb-stage" style="min-height:240px"></div>
+        <div class="read info" id="fb-note"></div>
+      </div>
+      <div class="panel" id="fb-match">
+        <div class="hint">Not every failure deserves the same response. The gateway reads the error and reacts. Click each:</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="fb-cards"></div>
+        <div id="fb-detail" style="margin-top:12px;border-radius:8px;padding:13px 15px;font-size:13px;line-height:1.7;background:var(--bg2)"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Retry for transient, fall back for persistent — and fail fast on a bad request.</b> Backoff prevents a thundering herd; a circuit breaker stops re-probing a dead provider. You accept degraded-but-available over failed.</div>
+  </section>
+
+  <!-- 03 COST -->
+  <section id="cost">
+    <div class="sec-eyebrow"><span class="n">04</span> The managed bill</div>
+    <h2>Cost control</h2>
+    <p class="lead">You pay per token, and <strong>output costs far more than input</strong>. The chokepoint is the one place that sees every token — so it's where you make spend visible, attributed, bounded, and reusable.</p>
+    <div id="cost-root">
+      <div class="seg" id="cc-seg">
+        <div class="segbtn on" data-m="bill">The token bill</div>
+        <div class="segbtn" data-m="levers">Three cost levers</div>
+      </div>
+      <div class="panel on" id="cc-bill">
+        <div class="hint">Pick a model and drag the token counts (prices per million, illustrative):</div>
+        <div style="display:flex;gap:6px;margin-bottom:14px" id="cc-models"></div>
+        <div class="sliderrow"><span style="font-size:12.5px;color:var(--p);min-width:96px">Input tokens</span><input type="range" min="100" max="20000" value="2000" step="100" id="cc-in" style="flex:1"><span style="font-family:var(--mono);font-size:12px;min-width:54px;text-align:right" id="cc-in-lbl">2,000</span></div>
+        <div class="sliderrow"><span style="font-size:12.5px;color:var(--a);min-width:96px">Output tokens</span><input type="range" min="100" max="20000" value="2000" step="100" id="cc-out" style="flex:1"><span style="font-family:var(--mono);font-size:12px;min-width:54px;text-align:right" id="cc-out-lbl">2,000</span></div>
+        <div style="display:flex;height:30px;border-radius:7px;overflow:hidden;margin:14px 0 6px" id="cc-splitbar"></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px"><span style="color:var(--p)" id="cc-in-cost">input —</span><span style="color:var(--a)" id="cc-out-cost">output —</span></div>
+        <div style="text-align:center;font-size:22px;font-weight:600;color:var(--pink);margin:8px 0" id="cc-total">—</div>
+        <div class="read info" id="cc-bill-note"></div>
+      </div>
+      <div class="panel" id="cc-levers-panel">
+        <div class="hint">Because every request flows through it, the gateway can do three things scattered app code never could. Click each:</div>
+        <div style="display:grid;grid-template-columns:1fr;gap:9px" id="cc-levers"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>You can't optimize what you can't measure.</b> Attribution shows where the money goes; budgets cap it (alert → throttle → downgrade → block); response caching skips the call entirely — extending Lesson 3's "don't pay twice."</div>
+  </section>
+
+  <!-- 04 RATE -->
+  <section id="rate">
+    <div class="sec-eyebrow"><span class="n">05</span> Throughput</div>
+    <h2>Rate limiting &amp; load</h2>
+    <p class="lead">Providers cap how fast you can call them, but real traffic is bursty. A raw burst gets a wall of 429s. The gateway sits between and <strong>shapes</strong> the traffic to fit the limit.</p>
+    <div id="rate-root">
+      <div class="seg" id="rt-seg">
+        <div class="segbtn on" data-m="smooth">Smoothing the burst</div>
+        <div class="segbtn" data-m="levers">Load-management levers</div>
+      </div>
+      <div class="panel on" id="rt-smooth">
+        <div class="hint">The provider's limit is <strong>6 requests per window</strong>. A burst of 10 arrives at once. Compare:</div>
+        <div class="seg" id="rt-toggle">
+          <div class="segbtn on" data-t="without">Without gateway</div>
+          <div class="segbtn" data-t="with">With gateway</div>
+        </div>
+        <div class="card" id="rt-stage" style="min-height:180px"></div>
+        <div style="text-align:center"><span class="btn" id="rt-send" style="margin-top:6px">▶ Send burst of 10</span></div>
+        <div class="read" id="rt-note" style="margin-top:14px"></div>
+      </div>
+      <div class="panel" id="rt-levers-panel">
+        <div class="hint">How the gateway shapes load at the chokepoint. Click each:</div>
+        <div style="display:grid;grid-template-columns:1fr;gap:9px" id="rt-levers"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Trade a little latency for zero dropped traffic.</b> Token-bucket shaping, queuing with backpressure and priority, load-balancing across keys/providers (proactive 429-avoidance), and inbound per-user limits that protect you from your own users.</div>
+  </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="chain">
+      One layer, one idea: <b>the chokepoint is the leverage.</b> <b>Routing</b> sends each request to the right-sized model · <b>fallbacks</b> absorb provider failure with retries, backoff, and circuit breakers · <b>cost control</b> makes spend visible, attributed, and capped · <b>rate limiting</b> shapes bursty traffic in both directions. A gateway isn't intelligent — its power is its position. The infrastructure around the agent's brain.
+    </div>
+    Lesson 6 · AI Gateways — interactive study companion
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const links=[...document.querySelectorAll('.spine a')];
+  const map={};links.forEach(l=>map[l.dataset.sec]=l);
+  const obs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('on'));if(map[e.target.id])map[e.target.id].classList.add('on');}});},{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('main section').forEach(s=>obs.observe(s));
+})();
+
+/* 00 CONTROL POINT */
+(function(){
+  const root=document.getElementById('ctrl-root');
+  let mode="without";
+  const PROVIDERS=[{n:"Anthropic",y:60,c:"#854F0B",bg:"#FAEEDA"},{n:"OpenAI",y:130,c:"#0F6E56",bg:"#E1F5EE"},{n:"Google",y:200,c:"#185FA5",bg:"#E6F1FB"}];
+  function render(){
+    let s="";const appX=70,provX=540;
+    if(mode==="without"){
+      s+=`<rect x="${appX-50}" y="90" width="150" height="110" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/><text x="${appX+25}" y="112" text-anchor="middle" style="font-size:12px;font-weight:600;fill:#993C1D">Your app</text>`;
+      ["routing","retries","cost calc","rate limits","API keys ×3"].forEach((t,i)=>{s+=`<text x="${appX+25}" y="${130+i*15}" text-anchor="middle" style="font-size:9px;fill:#993C1D;opacity:0.8">+ ${t}</text>`;});
+      PROVIDERS.forEach(p=>{s+=`<line x1="${appX+100}" y1="145" x2="${provX}" y2="${p.y+18}" stroke="#D85A30" stroke-width="1.5" opacity="0.5"/>`;});
+    } else {
+      s=`<defs><marker id="gwA" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#534AB7"/></marker></defs>`;
+      s+=`<rect x="${appX-50}" y="120" width="130" height="50" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/><text x="${appX+15}" y="149" text-anchor="middle" style="font-size:12px;font-weight:600;fill:#3C3489">Your app</text>`;
+      const gwX=290;
+      s+=`<rect x="${gwX-10}" y="70" width="150" height="150" rx="12" fill="#FFFFFF" stroke="#534AB7" stroke-width="2"/><text x="${gwX+65}" y="92" text-anchor="middle" style="font-size:12px;font-weight:600;fill:#3C3489">AI Gateway</text>`;
+      ["route","fallback","cache","rate-limit","cost track","log"].forEach((t,i)=>{const col=i%2,row=Math.floor(i/2);s+=`<rect x="${gwX+2+col*72}" y="${104+row*36}" width="66" height="28" rx="5" fill="#EEEDFE"/><text x="${gwX+35+col*72}" y="${122+row*36}" text-anchor="middle" style="font-size:9px;fill:#534AB7">${t}</text>`;});
+      s+=`<line x1="${appX+80}" y1="145" x2="${gwX-10}" y2="145" stroke="#534AB7" stroke-width="2" marker-end="url(#gwA)"/>`;
+      PROVIDERS.forEach(p=>{s+=`<line x1="${gwX+140}" y1="145" x2="${provX}" y2="${p.y+18}" stroke="#1D9E75" stroke-width="1.5" opacity="0.7" marker-end="url(#gwA)"/>`;});
+    }
+    PROVIDERS.forEach(p=>{s+=`<rect x="${provX}" y="${p.y}" width="110" height="36" rx="7" fill="${p.bg}" stroke="${p.c}" stroke-width="1.5"/><text x="${provX+55}" y="${p.y+22}" text-anchor="middle" style="font-size:11px;fill:${p.c}">${p.n}</text>`;});
+    s+=`<text x="${provX+55}" y="42" text-anchor="middle" style="font-size:10px;fill:var(--tt)">model providers</text>`;
+    document.getElementById("gw-viz").innerHTML=s;
+    const note=document.getElementById("gw-note"),funcs=document.getElementById("gw-funcs");
+    if(mode==="without"){
+      note.className="read bad";note.innerHTML=`Your app talks <strong>directly to each provider</strong>, so all the operational logic lives <em>inside your app</em>, tangled with business logic: routing, retry/fallback, cost tracking, rate-limit handling, and a key + SDK per provider. Add a provider or change a rule? You're editing app code and redeploying. Every concern is duplicated and scattered.`;
+      funcs.style.display="none";
+    } else {
+      note.className="read good";note.innerHTML=`Every request flows through <strong>one control point</strong>. Your app makes a single uniform call; the gateway handles the cross-cutting concerns and forwards to whichever provider it chooses. Your app no longer knows which model answered. Change a rule or add a provider? Configure the gateway — app code never changes. <strong>The chokepoint is the leverage.</strong>`;
+      funcs.style.display="grid";
+      const F=[{i:"ti-route",n:"Routing",s:"pick the right model per request"},{i:"ti-refresh",n:"Fallbacks",s:"retry / failover on errors"},{i:"ti-coin",n:"Cost control",s:"track spend, route to save"},{i:"ti-gauge",n:"Rate limiting",s:"smooth bursts, respect limits"},{i:"ti-bolt",n:"Caching",s:"reuse identical responses"},{i:"ti-chart-line",n:"Observability",s:"one place to log every call"}];
+      funcs.innerHTML=F.map(f=>`<div class="card" style="padding:9px 11px"><div style="font-size:12.5px;font-weight:500;color:#3C3489;display:flex;align-items:center;gap:7px"><span style="width:22px;height:22px;border-radius:6px;background:#EEEDFE;color:#534AB7;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0"><i class="ti ${f.i}" aria-hidden="true"></i></span>${f.n}</div><div style="font-size:11px;color:var(--ts);margin-top:2px;line-height:1.35">${f.s}</div></div>`).join("");
+    }
+    document.getElementById("gw-hint").textContent=mode==="without"?"Your application wires itself directly to every provider — and absorbs all the operational complexity:":"One control point between your app and the providers — every cross-cutting concern lives here:";
+  }
+  function setMode(m){mode=m;root.querySelectorAll("#gw-seg .segbtn").forEach(b=>{const on=b.dataset.m===m;b.classList.toggle("on",on);b.style.background=on?(m==="without"?"#FAECE7":"#E1F5EE"):"";b.style.borderColor=on?(m==="without"?"#993C1D":"#0F6E56"):"";b.style.color=on?(m==="without"?"#712B13":"#085041"):"";});render();}
+  root.querySelectorAll("#gw-seg .segbtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  setMode("without");
+})();
+
+/* 01 ROUTING */
+(function(){
+  const root=document.getElementById('rout-root');
+  const TIERS={haiku:{name:"Haiku-class",cost_in:0.80,cost_out:4,color:"#0F6E56",bg:"#E1F5EE",cap:"fast · cheap · simple tasks"},sonnet:{name:"Sonnet-class",cost_in:3,cost_out:15,color:"#854F0B",bg:"#FAEEDA",cap:"balanced workhorse"},opus:{name:"Opus-class",cost_in:15,cost_out:75,color:"#993C1D",bg:"#FAECE7",cap:"most capable · complex reasoning"}};
+  function renderLadder(){
+    const max=75;
+    document.getElementById("mr-tiers").innerHTML=Object.values(TIERS).map(t=>`<div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:8px;margin-bottom:8px;border:1px solid var(--bt);background:${t.bg}"><div style="min-width:96px;font-weight:500;font-size:13px;color:${t.color}">${t.name}</div><div style="flex:1"><div style="height:22px;background:var(--bg2);border-radius:5px;overflow:hidden"><div style="height:100%;border-radius:5px;width:${t.cost_out/max*100}%;background:${t.color};transition:width .6s"></div></div><div style="font-size:10.5px;color:${t.color};margin-top:3px">${t.cap}</div></div><div style="min-width:120px;text-align:right;font-family:var(--mono);font-size:11.5px;color:${t.color}">$${t.cost_in} / $${t.cost_out}<div style="font-size:9px;opacity:.7">in / out per M</div></div></div>`).join("");
+    document.getElementById("mr-ladder-note").innerHTML=`The output-price spread is roughly <strong>18×</strong> from Haiku to Opus. Sending a trivial "what are your hours?" to Opus isn't a little wasteful — it's ~18× the cost of the right tool. And it cuts the other way: a smaller model is often <strong>faster and entirely good enough</strong>, and occasionally the big model is <em>worse</em> for a simple task (slower, over-thinks). <strong>"Best model" is the wrong default on both axes.</strong> Ask "what's the right-sized model for THIS request?"`;
+  }
+  const REQS=[{txt:'"What are your store hours?"',tier:"haiku",in:120,out:30},{txt:'"Classify this ticket\'s intent"',tier:"haiku",in:200,out:20},{txt:'"Reset my password — steps?"',tier:"haiku",in:140,out:80},{txt:'"Summarize this 3-page complaint and draft a reply"',tier:"sonnet",in:1800,out:600},{txt:'"Extract structured data from this invoice"',tier:"sonnet",in:900,out:300},{txt:'"Analyze this contract for liability conflicts across all clauses"',tier:"opus",in:5000,out:1500}];
+  function cost(tier,i,o){const t=TIERS[tier];return (i*t.cost_in+o*t.cost_out)/1e6;}
+  function renderReqs(routed){
+    document.getElementById("mr-reqs").innerHTML=REQS.map(r=>{const t=TIERS[r.tier],c=cost(r.tier,r.in,r.out);return `<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;margin-bottom:7px;background:var(--bg);border:1px solid ${routed?t.color:'var(--bt)'};transition:all .3s"><div style="flex:1;font-size:12.5px;color:var(--tp)">${r.txt}</div><div style="font-size:12px;color:var(--tt)">→</div><div style="font-family:var(--mono);font-size:11px;font-weight:500;padding:2px 8px;border-radius:5px;min-width:64px;text-align:center;opacity:${routed?1:0};transition:opacity .4s;background:${t.bg};color:${t.color}">${t.name.split('-')[0]}</div><div style="font-family:var(--mono);font-size:11px;min-width:62px;text-align:right;color:var(--ts);opacity:${routed?1:0};transition:opacity .4s">$${c.toFixed(5)}</div></div>`;}).join("");
+  }
+  function route(){
+    renderReqs(true);
+    const rt=REQS.reduce((s,r)=>s+cost(r.tier,r.in,r.out),0),op=REQS.reduce((s,r)=>s+cost("opus",r.in,r.out),0),saved=Math.round((1-rt/op)*100);
+    document.getElementById("mr-cmp-opus").textContent="$"+op.toFixed(4);document.getElementById("mr-cmp-opus").style.color="#993C1D";
+    document.getElementById("mr-cmp-route").textContent="$"+rt.toFixed(4);document.getElementById("mr-cmp-route").style.color="#0F6E56";
+    document.getElementById("mr-cmp-saved").textContent=saved+"%";document.getElementById("mr-cmp-saved").style.color="#185FA5";
+    const note=document.getElementById("mr-router-note");note.style.display="block";
+    note.innerHTML=`The router sent 3 trivial requests to Haiku, 2 medium to Sonnet, and only the hard contract analysis to Opus. Same quality where it matters, <strong>${saved}% cheaper</strong> than all-Opus. Scale across millions of requests and routing is the biggest lever on your bill. <strong>How does it decide?</strong> Rule-based (keywords/task/length — like your production agent's regex router) or a tiny 'router model' that classifies complexity, then dispatches.`;
+  }
+  function setMode(m){root.querySelectorAll("#mr-seg .segbtn").forEach(b=>{const on=b.dataset.m===m;b.classList.toggle("on",on);b.style.background=on?"#EEEDFE":"";b.style.borderColor=on?"#534AB7":"";b.style.color=on?"#3C3489":"";});document.getElementById("mr-ladder").classList.toggle("on",m==="ladder");document.getElementById("mr-router").classList.toggle("on",m==="router");if(m==="ladder")renderLadder();if(m==="router")renderReqs(false);}
+  document.getElementById("mr-route").addEventListener("click",route);
+  root.querySelectorAll("#mr-seg .segbtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  setMode("ladder");
+})();
+
+/* 02 FALLBACKS */
+(function(){
+  const root=document.getElementById('fall-root');
+  const STEPS=[
+    {cls:"try",tag:"ATTEMPT 1",txt:"Gateway → Anthropic Opus (primary, the routed choice)",status:"trying primary…",note:"<b>Send to primary.</b> The request was routed to Opus. The gateway sends it and starts a timer. Your app has made one call and is simply waiting."},
+    {cls:"fail",tag:"TIMEOUT",txt:"✗ no response in 10s — request timed out",status:"primary timed out",note:"<b>Transient failure.</b> A timeout is usually temporary (a slow node, a network blip). This is a candidate for a RETRY — same model, try again — rather than giving up. The gateway decides based on error type."},
+    {cls:"wait",tag:"BACKOFF",txt:"wait 1s before retrying (exponential backoff)",status:"backing off…",note:"<b>Exponential backoff.</b> Don't hammer a struggling provider — that makes it worse. Wait, and double the wait on each retry (1s, 2s, 4s…). Gives the provider room to recover and avoids a thundering-herd pile-on."},
+    {cls:"try",tag:"ATTEMPT 2",txt:"Gateway → Anthropic Opus (retry)",status:"retrying primary…",note:"<b>Retry the same model.</b> One more try on Opus — maybe the blip passed. The gateway caps retries (2-3) so it doesn't wait forever on a truly-down provider."},
+    {cls:"fail",tag:"503",txt:"✗ Anthropic returns 503 — service unavailable",status:"primary still down",note:"<b>Persistent failure.</b> A second failure, now a hard 503. Retrying the same model again won't help — this provider is struggling. Time to stop retrying and FALL BACK."},
+    {cls:"try",tag:"FALLBACK",txt:"Gateway → OpenAI GPT (secondary in the fallback chain)",status:"falling back…",note:"<b>Fallback to another provider.</b> The gateway's superpower: because your app speaks one uniform interface, it can silently switch providers. You configured a chain: Opus → GPT → Gemini. It moves to the next healthy link."},
+    {cls:"ok",tag:"SUCCESS",txt:"✓ OpenAI GPT responds — result returned to app",status:"success ✓",note:"<b>Recovered.</b> The app gets a valid answer and never knew the primary failed. It made ONE call; the gateway absorbed a timeout, a backoff, a retry, a 503, and a cross-provider failover. The tradeoff: the fallback model may give slightly different output — you accepted <em>degraded-but-available</em> over <em>failed</em>. For most systems, the right trade."},
+  ];
+  const CLS={try:'background:#FAEEDA;color:#633806',fail:'background:#FAECE7;color:#712B13',wait:'background:var(--bg2);color:var(--ts)',ok:'background:#E1F5EE;color:#085041;font-weight:500'};
+  const TAG={try:'background:#EF9F27;color:#412402',fail:'background:#D85A30;color:#3D1407',wait:'background:#B4B2A9;color:#3a3833',ok:'background:#1D9E75;color:#04342C'};
+  let step=0;
+  function renderChain(){
+    let html="";
+    for(let i=0;i<step;i++){const s=STEPS[i];html+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 11px;border-radius:7px;margin-bottom:7px;font-size:12.5px;${CLS[s.cls]}"><span style="font-family:var(--mono);font-size:10px;font-weight:500;padding:1px 7px;border-radius:5px;flex-shrink:0;${TAG[s.cls]}">${s.tag}</span><span>${s.txt}</span></div>`;}
+    if(step===0)html=`<div style="color:var(--tt);text-align:center;padding:80px 10px;font-size:13px">app sent 1 request — press Next step</div>`;
+    document.getElementById("fb-stage").innerHTML=html;
+    const st=document.getElementById("fb-stage");st.scrollTop=st.scrollHeight;
+    document.getElementById("fb-status").textContent=step>0?STEPS[step-1].status:"app waiting…";
+    document.getElementById("fb-note").innerHTML=step>0?STEPS[step-1].note:`Press "Next step". The app made a single call; everything that follows happens inside the gateway, invisible to the app.`;
+    document.getElementById("fb-next").style.opacity=step>=STEPS.length?0.4:1;
+  }
+  document.getElementById("fb-next").addEventListener("click",()=>{if(step<STEPS.length){step++;renderChain();}});
+  document.getElementById("fb-reset").addEventListener("click",()=>{step=0;renderChain();});
+  const ERRORS=[
+    {err:"Timeout / 503",strat:"Retry, then fall back",color:"#854F0B",bg:"#FAEEDA",why:"Usually transient — a slow node or momentary unavailability. Retry the same model 1-2 times with exponential backoff. If it keeps failing, fall back to another provider. Don't give up on the first timeout."},
+    {err:"429 rate limited",strat:"Back off / fall back",color:"#185FA5",bg:"#E6F1FB",why:"You're sending too fast for this provider's limit. Respect any Retry-After header, back off, and/or immediately fall back to a provider with spare capacity. Spreading load across providers is a core gateway trick."},
+    {err:"500 / outage",strat:"Fall back now",color:"#993C1D",bg:"#FAECE7",why:"The provider is broken, not busy. Retrying wastes time. Fall back to the next provider immediately. Pair with a CIRCUIT BREAKER: after repeated failures, stop sending to this provider for a cooldown so you're not probing a dead service on every request."},
+    {err:"400 bad request",strat:"Fail fast — don't retry",color:"#0F6E56",bg:"#E1F5EE",why:"The request itself is malformed (bad schema, too many tokens). Retrying or falling back fails identically — the problem is your input, not the provider. Surface the error to the app immediately instead of burning time and money on doomed retries."},
+  ];
+  let errSel=0;
+  function renderMatch(){
+    document.getElementById("fb-cards").innerHTML=ERRORS.map((e,i)=>`<div data-i="${i}" style="border-radius:8px;padding:11px 13px;cursor:pointer;border:${i===errSel?'2px':'1px'} solid ${i===errSel?e.color:'var(--bt)'};background:${i===errSel?e.bg:'var(--bg)'}"><div style="font-family:var(--mono);font-size:12px;font-weight:500;color:${e.color}">${e.err}</div><div style="font-size:11px;margin-top:3px;font-weight:500;color:${e.color}">→ ${e.strat}</div></div>`).join("");
+    const e=ERRORS[errSel];
+    document.getElementById("fb-detail").innerHTML=`<div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;color:${e.color}">${e.err} → ${e.strat}</div><div style="color:var(--tp)">${e.why}</div>`;
+  }
+  document.getElementById("fb-cards").addEventListener("click",e=>{const el=e.target.closest("[data-i]");if(!el)return;errSel=+el.dataset.i;renderMatch();});
+  function setMode(m){root.querySelectorAll("#fb-seg .segbtn").forEach(b=>{const on=b.dataset.m===m;b.classList.toggle("on",on);b.style.background=on?"#EEEDFE":"";b.style.borderColor=on?"#534AB7":"";b.style.color=on?"#3C3489":"";});document.getElementById("fb-chain").classList.toggle("on",m==="chain");document.getElementById("fb-match").classList.toggle("on",m==="match");}
+  root.querySelectorAll("#fb-seg .segbtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  setMode("chain");renderChain();renderMatch();
+})();
+
+/* 03 COST */
+(function(){
+  const root=document.getElementById('cost-root');
+  const MODELS={haiku:{name:"Haiku",cin:0.80,cout:4,color:"#0F6E56"},sonnet:{name:"Sonnet",cin:3,cout:15,color:"#854F0B"},opus:{name:"Opus",cin:15,cout:75,color:"#993C1D"}};
+  let model="sonnet";
+  function renderModels(){document.getElementById("cc-models").innerHTML=Object.entries(MODELS).map(([k,m])=>`<div data-k="${k}" style="flex:1;padding:7px;font-size:12px;text-align:center;border:1px solid ${k===model?m.color:'var(--bs)'};border-radius:8px;cursor:pointer;background:${k===model?m.color+'1a':'var(--bg2)'};color:${k===model?m.color:'var(--ts)'};${k===model?'font-weight:500':''}">${m.name}<div style="font-size:9px;opacity:.7;margin-top:1px">$${m.cin}/$${m.cout}</div></div>`).join("");}
+  function renderBill(){
+    const m=MODELS[model],i=+document.getElementById("cc-in").value,o=+document.getElementById("cc-out").value;
+    document.getElementById("cc-in-lbl").textContent=i.toLocaleString();document.getElementById("cc-out-lbl").textContent=o.toLocaleString();
+    const ic=i*m.cin/1e6,oc=o*m.cout/1e6,total=ic+oc,inPct=total>0?ic/total*100:50;
+    document.getElementById("cc-splitbar").innerHTML=`<div style="background:#7F77DD;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;transition:width .4s;width:${inPct}%">${inPct>14?'input':''}</div><div style="background:#854F0B;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;transition:width .4s;width:${100-inPct}%">${100-inPct>14?'output':''}</div>`;
+    document.getElementById("cc-in-cost").textContent=`input $${ic.toFixed(5)}`;document.getElementById("cc-out-cost").textContent=`output $${oc.toFixed(5)}`;
+    document.getElementById("cc-total").textContent=`$${total.toFixed(5)} / request`;
+    const ratio=(m.cout/m.cin).toFixed(0);
+    document.getElementById("cc-bill-note").innerHTML=`On ${m.name}, an output token costs <strong>${ratio}× an input token</strong>. At equal counts, output is ~${ratio}× the bar. <strong>This is why response length is a cost lever:</strong> trimming a verbose answer saves more than trimming the prompt. It's also why Chain-of-Thought and extended thinking (Lesson 2) have a real price — every reasoning token is billed as output. Times millions of calls, this per-request cost is the whole budget.`;
+  }
+  const LEVERS=[
+    {id:"attr",ic:"ti-receipt",color:"#185FA5",bg:"#E6F1FB",name:"Spend attribution",body:"The gateway logs the exact cost of every call and tags it — by user, team, feature, or key. Before a gateway, 'why is our bill $40k?' is unanswerable. After, you see the new summarization feature is 60% of spend, or one customer is driving costs. You can't optimize what you can't measure — and the chokepoint is the one place that sees every token."},
+    {id:"budget",ic:"ti-shield-dollar",color:"#854F0B",bg:"#FAEEDA",name:"Budgets & spend caps",body:"Set a hard limit per key, team, or customer. As spend approaches it, the gateway can alert, then throttle, then DOWNGRADE (route to a cheaper model), then block — automatically, at the chokepoint. This prevents a runaway loop or abusive user from running up an unbounded bill. Your app needs none of this logic."},
+    {id:"cache",ic:"ti-bolt",color:"#0F6E56",bg:"#E1F5EE",name:"Response caching",body:"If an identical request comes in again, return the stored response for ~$0 and near-zero latency — skipping the model entirely. Two flavors: EXACT-match and SEMANTIC (a near-identical question hits too). Distinct from Lesson 3's prompt caching, which discounts re-processing a shared prefix — here the gateway skips the call altogether. For repetitive workloads, a massive saver."},
+  ];
+  let lever="attr";
+  function renderLevers(){
+    document.getElementById("cc-levers").innerHTML=LEVERS.map(l=>`<div data-id="${l.id}" style="border:${l.id===lever?'2px':'1px'} solid ${l.id===lever?l.color:'var(--bt)'};border-radius:8px;padding:12px 14px;cursor:pointer;background:var(--bg)"><div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:9px"><span style="width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;background:${l.bg};color:${l.color}"><i class="ti ${l.ic}" aria-hidden="true"></i></span><span style="color:${l.color}">${l.name}</span></div>${l.id===lever?`<div style="font-size:12.5px;color:var(--ts);line-height:1.6;margin-top:5px">${l.body}</div>`:''}</div>`).join("");
+  }
+  document.getElementById("cc-levers").addEventListener("click",e=>{const el=e.target.closest("[data-id]");if(!el)return;lever=el.dataset.id;renderLevers();});
+  document.getElementById("cc-models").addEventListener("click",e=>{const el=e.target.closest("[data-k]");if(!el)return;model=el.dataset.k;renderModels();renderBill();});
+  document.getElementById("cc-in").addEventListener("input",renderBill);
+  document.getElementById("cc-out").addEventListener("input",renderBill);
+  function setMode(m){root.querySelectorAll("#cc-seg .segbtn").forEach(b=>{const on=b.dataset.m===m;b.classList.toggle("on",on);b.style.background=on?"#EEEDFE":"";b.style.borderColor=on?"#534AB7":"";b.style.color=on?"#3C3489":"";});document.getElementById("cc-bill").classList.toggle("on",m==="bill");document.getElementById("cc-levers-panel").classList.toggle("on",m==="levers");}
+  root.querySelectorAll("#cc-seg .segbtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  setMode("bill");renderModels();renderBill();renderLevers();
+})();
+
+/* 04 RATE */
+(function(){
+  const root=document.getElementById('rate-root');
+  const CAP=6,BURST=10;
+  let mode="without",sent=false;
+  function renderStage(){
+    const stage=document.getElementById("rt-stage");
+    if(!sent){stage.innerHTML=`<div style="color:var(--tt);text-align:center;padding:60px 10px;font-size:13px">press "Send burst" to fire 10 requests at once</div>`;return;}
+    if(mode==="without"){
+      let dots="";for(let i=0;i<BURST;i++){const ok=i<CAP;dots+=`<div style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;transition:all .4s;transition-delay:${i*40}ms;${ok?'background:#E1F5EE;color:#085041;border:1px solid #0F6E56':'background:#FAECE7;color:#993C1D;border:1px solid #993C1D'}">${ok?'✓':'✗'}</div>`;}
+      stage.innerHTML=`<div style="font-size:11px;color:var(--tt);font-family:var(--mono);margin-bottom:8px">window 1 — all 10 hit the provider at once</div><div style="font-size:11px;color:#993C1D;margin:10px 0 4px;font-family:var(--mono)">provider limit: ${CAP} / window ↓</div><div style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;align-items:center">${dots}</div>`;
+    } else {
+      let w1="",w2="";for(let i=0;i<CAP;i++)w1+=`<div style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;transition:all .4s;transition-delay:${i*40}ms;background:#E1F5EE;color:#085041;border:1px solid #0F6E56">✓</div>`;for(let i=CAP;i<BURST;i++)w2+=`<div style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;transition:all .4s;transition-delay:${i*40}ms;background:#E1F5EE;color:#085041;border:1px solid #0F6E56">✓</div>`;
+      stage.innerHTML=`<div style="font-size:11px;color:var(--tt);font-family:var(--mono);margin-bottom:8px">window 1 — gateway releases up to the limit</div><div style="font-size:11px;color:#993C1D;margin:10px 0 4px;font-family:var(--mono)">provider limit: ${CAP} / window ↓</div><div style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;align-items:center">${w1}</div><div style="font-size:11px;color:var(--tt);font-family:var(--mono);margin-top:14px;margin-bottom:8px">window 2 — the queued 4 released next window</div><div style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;align-items:center">${w2}</div>`;
+    }
+  }
+  function renderNote(){
+    const note=document.getElementById("rt-note");
+    if(!sent){note.className="read bad";note.innerHTML="";note.style.minHeight="0";return;}
+    if(mode==="without"){note.className="read bad";note.innerHTML=`All 10 requests hit the provider simultaneously. Only ${CAP} fit under the limit — the other <strong>4 are rejected with 429</strong>. Those requests <em>failed</em>: users see errors, or you scramble to retry (adding latency and more load). A raw burst against a rate-limited API is just dropped traffic.`;}
+    else{note.className="read good";note.innerHTML=`The gateway <strong>queues</strong> the burst and releases at a sustainable rate — ${CAP} this window, the remaining 4 next window. <strong>All 10 succeed</strong>, just slightly staggered. The gateway absorbed the spike and shaped it to fit the limit. The cost is a little latency on the queued requests; the win is zero dropped traffic. The core move: <em>trade a bit of delay for reliability under bursty load.</em>`;}
+  }
+  function setT(t){mode=t;sent=false;root.querySelectorAll("#rt-toggle .segbtn").forEach(b=>{const on=b.dataset.t===t;b.classList.toggle("on",on);b.style.background=on?(t==="without"?"#FAECE7":"#E1F5EE"):"";b.style.borderColor=on?(t==="without"?"#993C1D":"#0F6E56"):"";b.style.color=on?(t==="without"?"#712B13":"#085041"):"";});renderStage();renderNote();}
+  const LEVERS=[
+    {id:"bucket",ic:"ti-bucket-droplet",color:"#185FA5",bg:"#E6F1FB",name:"Token bucket / rate shaping",body:"The classic algorithm. A 'bucket' of capacity refills at a steady rate; each request spends one token. Short bursts are fine (drain the bucket), but sustained over-rate gets throttled to the refill speed. This lets the gateway allow brief spikes while holding the long-run average under the provider's limit — the smoothing you just saw, formalized."},
+    {id:"queue",ic:"ti-stack-2",color:"#854F0B",bg:"#FAEEDA",name:"Queuing & backpressure",body:"Overflow requests wait in a queue instead of being dropped, then release as capacity frees up. If the queue itself fills (sustained overload), the gateway applies BACKPRESSURE — slow or reject new inbound requests gracefully rather than melting down. Add PRIORITY: urgent interactive requests jump ahead of bulk/batch jobs that can wait."},
+    {id:"balance",ic:"ti-arrows-split",color:"#0F6E56",bg:"#E1F5EE",name:"Load balancing across keys/providers",body:"Effective capacity isn't fixed. Spread requests across multiple API keys or several providers to MULTIPLY real throughput — and route around any single provider nearing its limit. Same uniform-interface trick as fallbacks: because the app speaks one protocol, the gateway distributes load wherever there's headroom. Load balancing is proactive 429-avoidance; fallback is reactive recovery."},
+    {id:"inbound",ic:"ti-shield-half",color:"#993C1D",bg:"#FAECE7",name:"Inbound limits (protect yourself)",body:"Rate limiting runs in BOTH directions. Outbound: respect the provider's limits. Inbound: enforce per-user / per-key quotas so one abusive or runaway client can't consume all your capacity or budget. This is where rate limiting meets cost caps and guardrails — the gateway protects the provider from you, AND protects you from your own users."},
+  ];
+  let lever="bucket";
+  function renderLevers(){
+    document.getElementById("rt-levers").innerHTML=LEVERS.map(l=>`<div data-id="${l.id}" style="border:${l.id===lever?'2px':'1px'} solid ${l.id===lever?l.color:'var(--bt)'};border-radius:8px;padding:12px 14px;cursor:pointer;background:var(--bg)"><div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:9px"><span style="width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;background:${l.bg};color:${l.color}"><i class="ti ${l.ic}" aria-hidden="true"></i></span><span style="color:${l.color}">${l.name}</span></div>${l.id===lever?`<div style="font-size:12.5px;color:var(--ts);line-height:1.6;margin-top:5px">${l.body}</div>`:''}</div>`).join("");
+  }
+  document.getElementById("rt-levers").addEventListener("click",e=>{const el=e.target.closest("[data-id]");if(!el)return;lever=el.dataset.id;renderLevers();});
+  document.getElementById("rt-send").addEventListener("click",()=>{sent=true;renderStage();renderNote();});
+  root.querySelectorAll("#rt-toggle .segbtn").forEach(b=>b.addEventListener("click",()=>setT(b.dataset.t)));
+  function setMode(m){root.querySelectorAll("#rt-seg .segbtn").forEach(b=>{const on=b.dataset.m===m;b.classList.toggle("on",on);b.style.background=on?"#EEEDFE":"";b.style.borderColor=on?"#534AB7":"";b.style.color=on?"#3C3489":"";});document.getElementById("rt-smooth").classList.toggle("on",m==="smooth");document.getElementById("rt-levers-panel").classList.toggle("on",m==="levers");}
+  root.querySelectorAll("#rt-seg .segbtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  setMode("smooth");setT("without");renderLevers();
+})();
+</script>
+</body>
+</html>
